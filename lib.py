@@ -14,7 +14,7 @@ excelName = re.compile("\w.*Release_Note_\d*\.xlsm") #{not~}{any}Release_Note_{n
 excelName = list( filter( excelName.match, allDir ) )
 
 def argparse_function(ver):
-    parser = argparse.ArgumentParser(prog='ReleasePkg.py', description='Tutorial')
+    parser = argparse.ArgumentParser(prog='compare_BCU_RN.py', description='Tutorial')
     parser.add_argument("-d", "--debug", help='Show debug message.', action="store_true")
     parser.add_argument("-v", "--version", action="version", version=ver)
     args = parser.parse_args()
