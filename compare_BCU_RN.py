@@ -39,8 +39,7 @@ from win32com.client import * # GetFileVersion from exe
 
 from lib import *
 
-version = "5"
-#print("Version : "+version)
+
 
 AMDPlatformDict = {"R24","R26","S25","S27","S29","T25","T26","T27"}
 isAMDPlatform = None
@@ -48,6 +47,9 @@ AMIPlatformDict = {"U24"}
 isAMIPlatform = None
 
 if __name__=="__main__" :
+    version = "5"
+    #print("Version : "+version)
+    arg=argparse_function(version)
     #Let user input platform and version
     goal_platform = input("\nInput Platform : ")
     goal_version = input("Input Version : ")
