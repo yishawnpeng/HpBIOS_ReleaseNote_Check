@@ -39,13 +39,16 @@ from win32com.client import * # GetFileVersion from exe
 
 from lib import *
 
+version = "5"
+#print("Version : "+version)
+
 AMDPlatformDict = {"R24","R26","S25","S27","S29","T25","T26","T27"}
 isAMDPlatform = None
 AMIPlatformDict = {"U24"}
 isAMIPlatform = None
 
 #Let user input platform and version
-goal_platform = input("Input Platform : ")
+goal_platform = input("\nInput Platform : ")
 goal_version = input("Input Version : ")
 if os.path.isdir(".\\"+str(goal_platform)+"_"+str(goal_version)):
     print("Go to folder : "+str(goal_platform)+"_"+str(goal_version))
@@ -75,6 +78,7 @@ if not excelName : #empty
     os.system("pause")
     sys.exit()
 else :
+    logging.debug("Debug Mode")
     rName = excelName[0]
     platform = rName.split("_")[2]
     version = rName.split("_")[-1].split(".")[0]
