@@ -3,6 +3,8 @@ compare_BCU_RN.py is python script that can help you to double confirm info betw
 
 Support Intel G5/G6/G8/G9/G9R, AMD G5/G6/G8 and AMI consumer platforms.
 
+![example workflow](https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check/actions/workflows/Release-build.yml/badge.svg)
+
 ## Main Function
 Get base information in BCU.txt witch show in BIOS Release Note(exactly same name).
 
