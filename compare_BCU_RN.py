@@ -39,7 +39,7 @@ from win32com.client import * # GetFileVersion from exe
 
 from lib import *
 
-
+test
 
 AMDPlatformDict = {"R24","R26","S25","S27","S29","T25","T26","T27"}
 isAMDPlatform = None
