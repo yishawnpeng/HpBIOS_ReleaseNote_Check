@@ -11,15 +11,15 @@ Support Intel G5/G6/G8/G9/G9R, AMD G5/G6/G8 and AMI consumer platforms.
 
 ## Main Function
 Get base information in BCU.txt witch show in BIOS Release Note(exactly same name).
+Get Check Sum from .bin.
+Get SHA256.
+Get FUR.exe version.
 
 ## Other Feature
 Get following Info fail can also work.
-* Try to get Check Sum from .bin.
 * Try to get Sprint(need local build).
 * Try to Get Agesa PI / SMU / PSP /… from amdz(if AMD).
 * Try to Get ME/RC/GbE… (if Intel).
-* Try to get SHA256.
-* Try to get FUR.exe version.
 * Try to get External Link.
 
 ## Installation
@@ -29,14 +29,18 @@ Get following Info fail can also work.
 
 ## How to use
 ### Before v5 
-1. Put .exe in your release folder.
+1. Put .exe <font color=Red>in</font> your release folder.
 2. Put {any}BCU.txt or {any}bcu.txt in your release folder.
 3. You can put {any}_SHA256.txt or Custom Test Suite.log / {any}_External_Link.txt or {any}_EL.txt / amdz{any}.txt in too(This step skip is FINE).
 4. Run .exe (double click/ power shell / cmd ).
 5. Check “result_RN.xlsx” file.
 
 ### After v5
-To Be Add
+1. Put .exe <font color=Red>out</font> of your release folder.
+2. Put {any}BCU.txt or {any}bcu.txt out of release folder.
+3. You can put {any}_External_Link.txt or {any}_EL.txt / amdz{any}.txt in too(This step skip is FINE).
+4. Run .exe (double click/ power shell / cmd ).
+5. Check “{platform}_checked/result_RN.xlsx” file.
 
 
 ## Contributing
