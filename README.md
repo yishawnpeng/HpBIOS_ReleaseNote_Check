@@ -10,9 +10,12 @@ Support Intel G5/G6/G8/G9/G9R, AMD G5/G6/G8 and AMI consumer platforms.
 ![example workflow](https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check/actions/workflows/Release-build.yml/badge.svg)
 
 ## Main Function
-Get base information in BCU.txt witch show in BIOS Release Note(exactly same name).
+Get base information in BCU.txt witch show in BIOS Release Note(exactly same name
+
 Get Check Sum from .bin.
+
 Get SHA256.
+
 Get FUR.exe version.
 
 ## Other Feature
