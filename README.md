@@ -43,7 +43,8 @@ Get following Info fail can also work.
 2. Put {any}BCU.txt or {any}bcu.txt out of release folder.
 3. You can put {any}_External_Link.txt or {any}_EL.txt / amdz{any}.txt in too(This step skip is FINE).
 4. Run .exe (double click/ power shell / cmd ).
-5. Check “{platform}_checked/result_RN.xlsx” file.
+5. Input the platform and version you want to check.
+6. Check “{platform}_checked/result_RN.xlsx” file.
 
 
 ## Contributing
