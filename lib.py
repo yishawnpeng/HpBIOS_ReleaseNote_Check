@@ -22,6 +22,7 @@ def argparse_function(ver):
 def isTypecPD(string) :
     amdN = re.compile("Cypress PD FW.*")
     intelN = re.compile("USB TYPE-C FW.*")
-    if amdN.match(string) or intelN.match(string) :
+    amdG4N = re.compile("Type C FW version")
+    if amdN.match(string) or intelN.match(string) or amdG4N.match(string) :
         return True
     return False

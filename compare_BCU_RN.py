@@ -25,16 +25,21 @@
 import pandas as pd     #excel
 import sys              #exit don't use os.exit
 import shutil           #for copy file (os.rename will remove file)
+import docx
 from win32com.client import * # GetFileVersion from exe
 from lib import *
 
-version = "6"
+version = "7"
+#support G3/G4 (release note docx)
 arg=argparse_function(version)
 
 AMDPlatformDict = {"R24","R26","S25","S27","S29","T25","T26","T27"}
+AMDG4PlatformDict = {"Q26","Q27"}
 isAMDPlatform = None
+isAMDG4Platform = None
 AMIPlatformDict = {"U24"}
 isAMIPlatform = None
+isG4Platform = None
 ###print("ME is compare form BCU not .bin")
 
 #=========Let user input platform and version
@@ -43,6 +48,12 @@ goal_version = input("Input Version : ")
 release_dir = ".\\"+str(goal_platform)+"_"+str(goal_version)
 fatherDir = os.getcwd() # father / outside
 allDir = os.listdir( fatherDir ) #list
+#====Check G4
+if "Q" in goal_platform or "P" in goal_platform :
+    if goal_platform in AMDG4PlatformDict :
+        isAMDG4Platform = True
+    else :
+        isG4Platform = True
 #====Create folder
 if os.path.isdir(release_dir):
     os.chdir(release_dir)
@@ -99,9 +110,14 @@ os.chdir(release_dir)
 release_all_dir = os.listdir( os.getcwd() )
 #Release Note
 excelName = re.compile("\w.*Release_Note_\d*\.xlsm|\w.*Release_Note.xlsm") 
+if isAMDG4Platform or isG4Platform :
+    excelName = re.compile("\w.*release note.docx|\w.*_Release_Notes.docx") 
 excelName = list( filter( excelName.match, release_all_dir ) )
 if not excelName :
-    print("Can not find Release Note!\nFormat :{any}Release_Note_{number}.xlsm or {any}Release_Note.xlsm")
+    if isAMDG4Platform or isG4Platform :
+        print("Can not find Release Note!\nFormat :{any}release note.docx or {any}_Release_Notes.docx")
+    else :
+        print("Can not find Release Note!\nFormat :{any}Release_Note_{number}.xlsm or {any}Release_Note.xlsm")
     os.system("pause")
     sys.exit()
 else :
@@ -162,44 +178,88 @@ with open(bcu_name[0]) as f:
     for line in f.readlines():
         bcu_content.append(line)
 #Get Release Note info
-rName = excelName[0]
-platform = rName.split("_")[2]
-version = rName.split("_")[-1].split(".")[0]
-isR = True if rName.split("_")[0][-1] == "R" else False
-isAMIPlatform = True if goal_platform in AMIPlatformDict else False
-if isAMIPlatform :              # \w.*Release_Note.xlsm
-    version = "".join(bcu_content[bcu_content.index("BIOS Revision\n")+1].strip()[1:].split("."))
-isAMDPlatform = True if goal_platform in AMDPlatformDict else False
-if goal_platform != str(platform) or goal_version != str(version) :
-    print("\nYour INPUT plateform_version is different with geted release note plateform_version!\nYou might ckeck!\n")
-##Get item name and info of this time
-try :
-    #Item name              :   usecols=[0]
-    #Get from Release Note  :   usecols=[1]
-    if isAMDPlatform :
-        rRowInfoName = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
-        rRowData = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
-    elif platform in {"U21","U23"} :
-        if isR :
-            rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[0] )
-            rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[1] )
-        else :
-            rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
-            rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
-    # include Intel AMI
-    else : 
-        rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[0] )
-        rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[1] )
+if isAMDG4Platform or isG4Platform :
+    rName = excelName[0]
+    if isAMDG4Platform :
+        platform = rName.split("_")[1]
+    else :
+        platform = rName.split("_")[2]
+    if isAMDG4Platform :
+        version = rName.split("_")[2]
+        version = version.replace(".","")
+    else :
+        version = rName.split("_")[3]
+        version = version.split(" ")[0]
+    if goal_platform != str(platform) or goal_version != str(version) :
+        print("\nYour INPUT plateform_version is different with geted release note plateform_version!\nYou might ckeck!\n")
+    try :
+        """ G4
+        file  = docx.Document("Scotty_Q26_02.22.00_0001_Release_Notes.docx")
+        #intel Sax_PV_Q11_022201 release note.docx
+        #print("len",len(file.paragraphs))
+        tables=file.tables
+        table = tables[1]
+        for i in range(0,len(table.rows)) :
+            result = table.cell(i,0).text
+            r2 = table.cell(i,1).text
+            print(result)
+            print(r2)
+        """
+        rRowInfoName = docx.Document(rName)
+        table=rRowInfoName.tables[1]
+        rRowInfoName=[]
+        rRowData=[]
+        for i in range(0,len(table.rows)) :
+            rRowInfoName.append(table.cell(i,0).text)
+            rRowData.append(table.cell(i,1).text)
 
-    rRowInfoName = rRowInfoName[rRowInfoName.columns[0]].tolist()
-    #Find Item Range
-    startIndex = rRowInfoName.index("System BIOS Version")
-    endIndex = rRowInfoName.index("Sprint Release Note")
-except Exception :
-    #print(Exception)
-    print("Get release note info! May be ceil(sheet) name error.")
-    os.system("pause")
-    sys.exit()
+        #Find Item Range
+        startIndex = rRowInfoName.index("System BIOS")
+        endIndex = rRowInfoName.index("CHID")
+    except Exception :
+        #print(Exception)
+        print("Get release note info! May be ceil(sheet) name error.")
+        os.system("pause")
+        sys.exit()
+else :
+    rName = excelName[0]
+    platform = rName.split("_")[2]
+    version = rName.split("_")[-1].split(".")[0]
+    isR = True if rName.split("_")[0][-1] == "R" else False
+    isAMIPlatform = True if goal_platform in AMIPlatformDict else False
+    if isAMIPlatform :              # \w.*Release_Note.xlsm
+        version = "".join(bcu_content[bcu_content.index("BIOS Revision\n")+1].strip()[1:].split("."))
+    isAMDPlatform = True if goal_platform in AMDPlatformDict else False
+    if goal_platform != str(platform) or goal_version != str(version) :
+        print("\nYour INPUT plateform_version is different with geted release note plateform_version!\nYou might ckeck!\n")
+    ##Get item name and info of this time
+    try :
+        #Item name              :   usecols=[0]
+        #Get from Release Note  :   usecols=[1]
+        if isAMDPlatform :
+            rRowInfoName = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
+            rRowData = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
+        elif platform in {"U21","U23"} :
+            if isR :
+                rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[0] )
+                rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[1] )
+            else :
+                rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
+                rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
+        # include Intel AMI
+        else : 
+            rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[0] )
+            rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[1] )
+
+        rRowInfoName = rRowInfoName[rRowInfoName.columns[0]].tolist()
+        #Find Item Range
+        startIndex = rRowInfoName.index("System BIOS Version")
+        endIndex = rRowInfoName.index("Sprint Release Note")
+    except Exception :
+        #print(Exception)
+        print("Get release note info! May be ceil(sheet) name error.")
+        os.system("pause")
+        sys.exit()
 #Get AMDZ info
 if amdz_name :
     amdz_content=[]
@@ -225,7 +285,10 @@ try:
     outputFile_PlatformHistory = pd.DataFrame( index = rRowInfoName[startIndex:endIndex], \
                                                 columns = ["Release Note Info", "Reference Info", "Result"] )
     outputFile.append(outputFile_PlatformHistory) #Sheet No.1
-    outputFile[0].iloc[:, 0] = rRowData[rRowData.columns[0]].tolist()[startIndex:endIndex]
+    if isG4Platform or isAMDG4Platform :
+        outputFile[0].iloc[:, 0] = rRowData[startIndex:endIndex]
+    else :
+        outputFile[0].iloc[:, 0] = rRowData[rRowData.columns[0]].tolist()[startIndex:endIndex]
 except Exception:
     #print(Exception)
     print("Creat excel fail or result_RN.xlsx being opened!")
@@ -267,7 +330,7 @@ for i in rRowInfoName:
             continue
         elif i == "Sprint" :
             print("Sprint info in local build BCU!")
-        elif i == "EC/SIO F/W" and not isAMIPlatform :
+        elif (i == "EC/SIO F/W" or i == "SIO FW") and not isAMIPlatform :
             try:
                 sio = bcu_content[bcu_content.index("Super I/O Firmware Version\n")+1].split()[-1]
                 outputFile[0].at[i, "Reference Info"] = sio
@@ -290,7 +353,7 @@ for i in rRowInfoName:
                     continue
             except :
                 pass
-        elif i == "PCR[00] TPM 2.0 SHA256":
+        elif i == "PCR[00] TPM 2.0 SHA256" or i == "PCR 0" :
             if SHA256_content :
                 indexOfSHA = SHA256_content.index("TPM2_Startup: Return Code: 0x100\n")+1
                 sha256 = SHA256_content[indexOfSHA:indexOfSHA+2]
@@ -299,12 +362,10 @@ for i in rRowInfoName:
                 sha256 = sha256[0] + "\n" + sha256[1]
                 outputFile[0].at[i, "Reference Info"] = sha256
                 continue
-        elif i == "FUR" and not isAMIPlatform:
+        elif (i == "FUR" or i == "HPBIOSUPDREC") and not isAMIPlatform:
             furV = ""
             if furP :
                 furV = information_parser.GetFileVersion(furP)
-            elif ami_furP :
-                furV = information_parser.GetFileVersion(ami_furP)
             outputFile[0].at[i, "Reference Info"] = furV
             continue
         elif i == "SVN ver. Core" :
@@ -336,7 +397,7 @@ for i in rRowInfoName:
                     , "Issue lists", "EC/SIO Functional changes" } :
             continue
         ##########AMD start
-        elif i == "AMD Agesa PI" :
+        elif i == "AMD Agesa PI" or i == "AMD Agesa code" :
             if amdz_name :
                 agesaPI = re.compile("AGESA:.*")
                 agesaPI = list( filter( agesaPI.match, amdz_content ) )[0].split()[-1] #agesaPI = agesaPI[0].split()[-1]
@@ -368,13 +429,13 @@ for i in rRowInfoName:
                 smufw = PSPandSMU[1].split("(")[0]
                 outputFile[0].at[i, "Reference Info"] = smufw
                 continue
-        elif i == "AMD Legacy VBIOS" :
+        elif i == "AMD Legacy VBIOS" or i == "AMD VBIOS" :
             if amdz_name :
                 vBIOS = re.compile("VBIOS Info.*")
                 vBIOS = list( filter( vBIOS.match, amdz_content ) )[0].split()[3][0:-1]
                 outputFile[0].at[i, "Reference Info"] = vBIOS
                 continue
-        elif i == "AMD GOP EFI Driver" :
+        elif i == "AMD GOP EFI Driver" or i == "AMD GOP" :
             try :
                 gOP = re.compile("Rev.*")
                 gOP = list( filter( gOP.match, bcu_content[bcu_content.index("Video BIOS Version\n")+1].split() ) )
@@ -483,6 +544,16 @@ for i in rRowInfoName:
             except :
                 pass
         ##########AMI end
+        ##########G4 end
+        elif i == "System BIOS" :
+            try:
+                bversion = bcu_content[bcu_content.index("System BIOS Version\n")+1].split()[2]
+                outputFile[0].at[i, "Reference Info"] = "Ver " + bversion
+                continue
+            except :
+                pass
+            
+        ##########G4 end
         else : 
             pass
         print("Can not find : " + str(i) )
