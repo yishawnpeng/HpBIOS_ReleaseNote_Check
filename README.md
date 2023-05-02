@@ -10,9 +10,12 @@ Support Intel G5/G6/G8/G9/G9R, AMD G5/G6/G8 and AMI consumer platforms.
 ![example workflow](https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check/actions/workflows/Release-build.yml/badge.svg)
 
 ## Main Function
-Get base information in BCU.txt witch show in BIOS Release Note(exactly same name).
+Get base information in BCU.txt witch show in BIOS Release Note(exactly same name
+
 Get Check Sum from .bin.
+
 Get SHA256.
+
 Get FUR.exe version.
 
 ## Other Feature
@@ -40,7 +43,8 @@ Get following Info fail can also work.
 2. Put {any}BCU.txt or {any}bcu.txt out of release folder.
 3. You can put {any}_External_Link.txt or {any}_EL.txt / amdz{any}.txt in too(This step skip is FINE).
 4. Run .exe (double click/ power shell / cmd ).
-5. Check “{platform}_checked/result_RN.xlsx” file.
+5. Input the platform and version you want to check.
+6. Check “{platform}_checked/result_RN.xlsx” file.
 
 
 ## Contributing
