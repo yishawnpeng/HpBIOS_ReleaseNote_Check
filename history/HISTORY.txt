@@ -1,0 +1,27 @@
+v7 2023-05-03
+-------------
+1.Support G3/G4(release note docx)
+
+v6 2023-05-03
+-------------
+1.Modify process.
+
+v5 2023-05-03
+-------------
+1.Try to get external link.( Put {any}External_Link.txt or {any}EL.txt in folder )
+
+v4 2023-05-03
+-------------
+1.Support AMI.
+
+v3 2023-05-03
+-------------
+1.Support G9/G9R in one release note.
+
+v2 2023-05-03
+-------------
+1.Fix error about write “result_RN.xlsx” columns name.
+
+v1 2023-04-10
+-------------
+1.Base function

@@ -1,16 +1,17 @@
 # HpBIOS_ReleaseNote_Check
 compare_BCU_RN.py is python script that can help you to double confirm info between release_note and BCU(and other unnecessary file)
 
-Support Intel G5/G6/G8/G9/G9R, AMD G5/G6/G8 and AMI consumer platforms.
+Support Intel G3/G4/G5/G6/G8/G9/G9R, AMD G4/G5/G6/G8 and AMI consumer platforms.
 
-### MAIN 
-![example workflow](https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check/actions/workflows/Python_build.yml/badge.svg)
+## Build Status
 
-### RELEASE
-![example workflow](https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check/actions/workflows/Release-build.yml/badge.svg)
+|**Type**      | **Build Status**    | 
+|--------------|:-------------------:|
+|Main          |![example workflow](https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check/actions/workflows/Python_build.yml/badge.svg)  |
+|Release       |![example workflow](https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check/actions/workflows/Release-build.yml/badge.svg)|
 
 ## Main Function
-Get base information in BCU.txt witch show in BIOS Release Note(exactly same name
+Get base information in BCU.txt witch show in BIOS Release Note(exactly same name)
 
 Get Check Sum from .bin.
 
@@ -29,6 +30,9 @@ Get following Info fail can also work.
 1. Clone the repository: ```git clone https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check.git```
 2. Install Python 3.x or later: https://www.python.org/downloads/
 3. Install required libraries: ```pip install -r requirements.txt```
+
+## History
+For more history information, please reference /history/HISTORY.txt
 
 ## How to use
 ### Before v5 
