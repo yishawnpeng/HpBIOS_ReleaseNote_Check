@@ -1,2 +1,3 @@
 pandas==1.3.5
 pywin32==306
+python-docx==0.8.11
