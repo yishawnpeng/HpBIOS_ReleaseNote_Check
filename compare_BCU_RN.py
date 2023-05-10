@@ -22,7 +22,7 @@
 # https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check.git
 #
 ############################
-import pandas as pd     #excel
+from pandas import * #excel
 import sys              #exit don't use os.exit
 import shutil           #for copy file (os.rename will remove file)
 import docx
@@ -237,19 +237,19 @@ else :
         #Item name              :   usecols=[0]
         #Get from Release Note  :   usecols=[1]
         if isAMDPlatform :
-            rRowInfoName = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
-            rRowData = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
+            rRowInfoName = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
+            rRowData = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
         elif platform in {"U21","U23"} :
             if isR :
-                rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[0] )
-                rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[1] )
+                rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[0] )
+                rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[1] )
             else :
-                rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
-                rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
+                rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
+                rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
         # include Intel AMI
         else : 
-            rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[0] )
-            rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[1] )
+            rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[0] )
+            rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[1] )
 
         rRowInfoName = rRowInfoName[rRowInfoName.columns[0]].tolist()
         #Find Item Range
@@ -280,9 +280,9 @@ if el_name:
             el_content.append(line)
 #Create resault.xml
 try:
-    writer = pd.ExcelWriter("result_RN.xlsx")
+    writer = ExcelWriter("result_RN.xlsx")
     outputFile = []
-    outputFile_PlatformHistory = pd.DataFrame( index = rRowInfoName[startIndex:endIndex], \
+    outputFile_PlatformHistory = DataFrame( index = rRowInfoName[startIndex:endIndex], \
                                                 columns = ["Release Note Info", "Reference Info", "Result"] )
     outputFile.append(outputFile_PlatformHistory) #Sheet No.1
     if isG4Platform or isAMDG4Platform :
