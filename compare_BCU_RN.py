@@ -179,6 +179,7 @@ with open(bcu_name[0]) as f:
         bcu_content.append(line)
 #Get Release Note info
 if isAMDG4Platform or isG4Platform :
+    print("a1")
     rName = excelName[0]
     if isAMDG4Platform :
         platform = rName.split("_")[1]
@@ -205,23 +206,29 @@ if isAMDG4Platform or isG4Platform :
             print(result)
             print(r2)
         """
+        print("a2")
         rRowInfoName = docx.Document(rName)
         table=rRowInfoName.tables[1]
         rRowInfoName=[]
         rRowData=[]
+        print("a3")
         for i in range(0,len(table.rows)) :
+            print("a4")
             rRowInfoName.append(table.cell(i,0).text)
             rRowData.append(table.cell(i,1).text)
 
+        print("a5")
         #Find Item Range
         startIndex = rRowInfoName.index("System BIOS")
         endIndex = rRowInfoName.index("CHID")
     except Exception :
+        print("a6")
         #print(Exception)
         print("Get release note info! May be ceil(sheet) name error.")
         os.system("pause")
         sys.exit()
 else :
+    print("b")
     rName = excelName[0]
     platform = rName.split("_")[2]
     version = rName.split("_")[-1].split(".")[0]
@@ -234,9 +241,11 @@ else :
         print("\nYour INPUT plateform_version is different with geted release note plateform_version!\nYou might ckeck!\n")
     ##Get item name and info of this time
     try :
+        print("b1")
         #Item name              :   usecols=[0]
         #Get from Release Note  :   usecols=[1]
         if isAMDPlatform :
+            print("b2")
             rRowInfoName = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
             rRowData = pd.read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
         elif platform in {"U21","U23"} :
@@ -248,14 +257,18 @@ else :
                 rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
         # include Intel AMI
         else : 
+            print("b3")
             rRowInfoName = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[0] )
             rRowData = pd.read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[1] )
 
+        print("b4")
         rRowInfoName = rRowInfoName[rRowInfoName.columns[0]].tolist()
         #Find Item Range
         startIndex = rRowInfoName.index("System BIOS Version")
         endIndex = rRowInfoName.index("Sprint Release Note")
+        print("b5")
     except Exception :
+        print("b6")
         #print(Exception)
         print("Get release note info! May be ceil(sheet) name error.")
         os.system("pause")
