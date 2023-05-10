@@ -22,7 +22,7 @@
 # https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check.git
 #
 ############################
-import pandas      #excel
+from pandas import * #excel
 import sys              #exit don't use os.exit
 import shutil           #for copy file (os.rename will remove file)
 import docx
