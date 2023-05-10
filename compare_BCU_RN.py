@@ -267,7 +267,8 @@ else :
         startIndex = rRowInfoName.index("System BIOS Version")
         endIndex = rRowInfoName.index("Sprint Release Note")
         print("b5")
-    except Exception :
+    except Exception as e :
+        print(e)
         print("b6")
         #print(Exception)
         print("Get release note info! May be ceil(sheet) name error.")
