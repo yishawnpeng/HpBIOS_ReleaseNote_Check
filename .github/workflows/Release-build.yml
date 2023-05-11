@@ -42,11 +42,11 @@ jobs:
         pip install pyinstaller
     - name: Build with PyInstaller for windows
       run: |
-        pyinstaller --noconfirm --distpath %cd%\ --onefile %cd%\compare_BCU_RN.py
+        pyinstaller --noconfirm --distpath %cd%\ --name compare_BCU_RN_${{ env.RELEASE_VERSION }}.exe --onefile %cd%\compare_BCU_RN.py
       shell: cmd
 
     - name: Archive release
-      run: 7z a -tzip ${{ env.RELEASE_FILENAME }} compare_BCU_RN.exe
+      run: 7z a -tzip ${{ env.RELEASE_FILENAME }} compare_BCU_RN_${{ env.RELEASE_VERSION }}.exe
 
     - name: Create Release
       id: create_release
