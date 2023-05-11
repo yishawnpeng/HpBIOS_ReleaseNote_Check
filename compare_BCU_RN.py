@@ -22,14 +22,14 @@
 # https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check.git
 #
 ############################
-from pandas import * #excel
+from pandas import *    #excel
 import sys              #exit don't use os.exit
 import shutil           #for copy file (os.rename will remove file)
 import docx
 from win32com.client import * # GetFileVersion from exe
 from lib import *
 
-version = "7"
+version = "8"
 #support G3/G4 (release note docx)
 arg=argparse_function(version)
 
