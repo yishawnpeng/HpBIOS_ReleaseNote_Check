@@ -1,3 +1,11 @@
+v8.1 2023-05-10
+-------------
+1.mod yml let .exe name have _version
+
+v8 2023-05-10
+-------------
+1.fix-server-build-different
+
 v7 2023-05-03
 -------------
 1.Support G3/G4(release note docx)
