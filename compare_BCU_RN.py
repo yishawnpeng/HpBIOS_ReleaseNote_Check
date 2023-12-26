@@ -71,6 +71,31 @@ if os.path.isdir(release_dir):
         os.chdir(new_dir)
         new_dir = os.getcwd()
         os.chdir(fatherDir)
+elif (list( filter( re.compile(fr'(?=.*{re.escape(goal_platform)})(?=.*{re.escape(goal_version)})').match, allDir ) )) : 
+    # as AsteroidsR_PV_U23_926100 need to find more
+    release_dir = re.compile(fr'(?=.*{re.escape(goal_platform)})(?=.*{re.escape(goal_version)})')
+    release_dir = list( filter( release_dir.match, allDir ) )
+    for i in release_dir :
+        if os.path.isdir(i) :
+            release_dir = ".\\"+i
+            #print(i+" is dir")
+            break
+    #print(release_dir)
+    os.chdir(release_dir)
+    release_dir = os.getcwd()
+    os.chdir(fatherDir)
+    new_dir = ".\\"+str(goal_platform)+"_"+str(goal_version)+"_checked"
+    if not os.path.exists(new_dir) :
+        print("Create folder:"+new_dir)
+        os.makedirs(new_dir)
+        os.chdir(new_dir)
+        new_dir = os.getcwd()
+        os.chdir(fatherDir)
+    else :
+        print("Folder already exist:"+new_dir)
+        os.chdir(new_dir)
+        new_dir = os.getcwd()
+        os.chdir(fatherDir)
 else :
     print("Can not find "+release_dir)
     os.system("pause")
@@ -91,7 +116,8 @@ else :
 amdz_name = re.compile("amdz.*\.txt")
 amdz_name = list( filter( amdz_name.match, allDir ) )
 if not amdz_name : # empty
-    print("You don't have amdz file !\nFormat : amdz{any}.txt")
+    if isAMDPlatform :
+        print("You don't have amdz file !\nFormat : amdz{any}.txt")
 else :
     print("Choose amdz :" + amdz_name[0])
     if not os.path.isfile(new_dir+"\\"+amdz_name[0]) :
@@ -109,9 +135,9 @@ else :
 os.chdir(release_dir)
 release_all_dir = os.listdir( os.getcwd() )
 #Release Note
-excelName = re.compile("\w.*Release_Note_\d*\.xlsm|\w.*Release_Note.xlsm") 
+excelName = re.compile("\w.*Release_Note_\d*\.xlsm|\w.*Release_Note.xlsm|\w.*Release Note_\d*\.xlsm")
 if isAMDG4Platform or isG4Platform :
-    excelName = re.compile("\w.*release note.docx|\w.*_Release_Notes.docx") 
+    excelName = re.compile("\w.*release note.docx|\w.*_Release_Notes.docx")
 excelName = list( filter( excelName.match, release_all_dir ) )
 if not excelName :
     if isAMDG4Platform or isG4Platform :
@@ -120,9 +146,14 @@ if not excelName :
         print("Can not find Release Note!\nFormat :{any}Release_Note_{number}.xlsm or {any}Release_Note.xlsm")
     os.system("pause")
     sys.exit()
-else :
-    print("Choose Release Note :" + excelName[0])
-    shutil.copy(release_dir+"\\"+excelName[0], new_dir+"\\"+excelName[0])
+elif len(excelName) == 1 :
+    chooseNote = excelName[0]
+else : # multy Note
+    chooseStr = "\n".join([f"[{index}] {item}" for index, item in enumerate(excelName)])
+    chooseNote = input(f"Choose one:\n{chooseStr}\n")
+    chooseNote = excelName[int(chooseNote)]
+    #print("Choose Release Note : " + chooseNote)
+    shutil.copy(release_dir+"\\"+chooseNote, new_dir+"\\"+chooseNote)
 #SHA256
 SHA256_file = re.compile(".*\d+_SHA256.txt")
 SHA256_file = list( filter( SHA256_file.match, release_all_dir ) )
@@ -161,12 +192,12 @@ elif os.path.isfile(".\\Global\\BIOS\\"+goal_platform+"_"+goal_version+"_16.bin"
     #AMI
     shutil.copy(release_dir+"\\Global\\BIOS\\"+goal_platform+"_"+goal_version+"_16.bin"\
               , new_dir+"\\"+goal_platform+"_"+goal_version+"_16.bin")
-    binFile = goal_platform+"_"+goal_version+".bin"
+    binFile = goal_platform+"_"+goal_version+"_16.bin"
 elif os.path.isfile(".\\Global\\BIOS\\"+goal_platform+"_"+goal_version+"_32.bin") :
     #Intel
     shutil.copy(release_dir+"\\Global\\BIOS\\"+goal_platform+"_"+goal_version+"_32.bin"\
               , new_dir+"\\"+goal_platform+"_"+goal_version+"_32.bin")
-    binFile = goal_platform+"_"+goal_version+".bin"
+    binFile = goal_platform+"_"+goal_version+"_32.bin"
 else :
     print("Can not find {platform}_{version}_[|16|32].bin !")
 #=========Compare info
@@ -179,7 +210,7 @@ with open(bcu_name[0]) as f:
         bcu_content.append(line)
 #Get Release Note info
 if isAMDG4Platform or isG4Platform :
-    rName = excelName[0]
+    rName = chooseNote
     if isAMDG4Platform :
         platform = rName.split("_")[1]
     else :
@@ -222,7 +253,7 @@ if isAMDG4Platform or isG4Platform :
         os.system("pause")
         sys.exit()
 else :
-    rName = excelName[0]
+    rName = chooseNote
     platform = rName.split("_")[2]
     version = rName.split("_")[-1].split(".")[0]
     isR = True if rName.split("_")[0][-1] == "R" else False
@@ -246,8 +277,12 @@ else :
             else :
                 rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
                 rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
+        elif goal_platform in {"U21","U23"} and not platform in {"U21","U23"} :
+            # new intel U21/U23
+            rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
+            rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
         # include Intel AMI
-        else : 
+        else :
             rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[0] )
             rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[1] )
 
@@ -267,8 +302,8 @@ if amdz_name :
         for line in f.readlines():
             amdz_content.append(line)
 #Get SHA256 info
+SHA256_content=[]
 if SHA256_file :
-    SHA256_content=[]
     with open(SHA256_file[0], encoding = "utf-16le") as f:
         for line in f.readlines():
             SHA256_content.append(line)
@@ -330,7 +365,7 @@ for i in rRowInfoName:
             continue
         elif i == "Sprint" :
             print("Sprint info in local build BCU!")
-        elif (i == "EC/SIO F/W" or i == "SIO FW") and not isAMIPlatform :
+        elif ( i=="EC/SIO F/W" or i=="SIO FW" or i=="EC/SIO FW" ) and not isAMIPlatform :
             try:
                 sio = bcu_content[bcu_content.index("Super I/O Firmware Version\n")+1].split()[-1]
                 outputFile[0].at[i, "Reference Info"] = sio
@@ -354,14 +389,17 @@ for i in rRowInfoName:
             except :
                 pass
         elif i == "PCR[00] TPM 2.0 SHA256" or i == "PCR 0" :
-            if SHA256_content :
-                indexOfSHA = SHA256_content.index("TPM2_Startup: Return Code: 0x100\n")+1
-                sha256 = SHA256_content[indexOfSHA:indexOfSHA+2]
-                sha256[0] = sha256[0][8:-3]
-                sha256[1] = sha256[1][8:-2]
-                sha256 = sha256[0] + "\n" + sha256[1]
-                outputFile[0].at[i, "Reference Info"] = sha256
-                continue
+            try :
+                if SHA256_content :
+                    indexOfSHA = SHA256_content.index("TPM2_Startup: Return Code: 0x100\n")+1
+                    sha256 = SHA256_content[indexOfSHA:indexOfSHA+2]
+                    sha256[0] = sha256[0][8:-3]
+                    sha256[1] = sha256[1][8:-2]
+                    sha256 = sha256[0] + "\n" + sha256[1]
+                    outputFile[0].at[i, "Reference Info"] = sha256
+                    continue
+            except Exception :
+                print("Get PCR ERROR MSG : ", Exception)
         elif (i == "FUR" or i == "HPBIOSUPDREC") and not isAMIPlatform:
             furV = ""
             if furP :
@@ -443,10 +481,11 @@ for i in rRowInfoName:
                 outputFile[0].at[i, "Reference Info"] = gOP
                 continue
             except Exception:
-                print("AMD GOP ERROR MSG : ",Exception )
+                print("AMD GOP ERROR MSG : ", Exception)
         ##########AMD end
         ##########Intel start
-        elif i == "ME Firmware" and not isAMIPlatform:
+        elif (i == "ME Firmware" or i == "Intel (R) Converged Security and Management Engine")\
+              and not isAMIPlatform :
             try :
                 mef = bcu_content[bcu_content.index("ME Firmware Version\n")+1].strip()
                 mef = "Corporate  v"+mef
