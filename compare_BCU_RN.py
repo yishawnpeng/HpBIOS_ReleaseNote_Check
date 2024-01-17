@@ -28,8 +28,12 @@ import shutil           #for copy file (os.rename will remove file)
 import docx
 from win32com.client import * # GetFileVersion from exe
 from lib import *
+import tabula           #read pdf form
+import openpyxl         #fill coler
+from datetime import datetime   # Protect excel
+import hashlib                  # Protect excel
 
-version = "8"
+version = "9.4"
 #support G3/G4 (release note docx)
 arg=argparse_function(version)
 
@@ -43,7 +47,8 @@ isG4Platform = None
 ###print("ME is compare form BCU not .bin")
 
 #=========Let user input platform and version
-goal_platform = input("\nInput Platform : ")
+print("v"+version)
+goal_platform = input("Input Platform : ")
 goal_version = input("Input Version : ")
 release_dir = ".\\"+str(goal_platform)+"_"+str(goal_version)
 fatherDir = os.getcwd() # father / outside
@@ -105,7 +110,7 @@ else :
 bcu_name = re.compile(".*BCU\.txt|.*bcu\.txt") # {any}BCU.txt or {any}bcu.txt
 bcu_name = list( filter( bcu_name.match, allDir ) )
 if not bcu_name :   #empty
-    print("You don't have BCU file or being opened!\nFormat should be {any}BCU.txt or {any}bcu.txt !")
+    print("You don't have BCU file or being opened!\nFormat should be \{any\}BCU.txt or \{any\}bcu.txt !")
     os.system("pause")
     sys.exit()
 else :
@@ -117,7 +122,7 @@ amdz_name = re.compile("amdz.*\.txt")
 amdz_name = list( filter( amdz_name.match, allDir ) )
 if not amdz_name : # empty
     if isAMDPlatform :
-        print("You don't have amdz file !\nFormat : amdz{any}.txt")
+        print("You don't have amdz file !\nFormat : amdz\{any\}.txt")
 else :
     print("Choose amdz :" + amdz_name[0])
     if not os.path.isfile(new_dir+"\\"+amdz_name[0]) :
@@ -126,11 +131,41 @@ else :
 el_name = re.compile(".*External_Link\.txt|.*EL\.txt") # {any}External_Link.txt or {any}EL.txt
 el_name = list( filter( el_name.match, allDir ) )
 if not el_name :
-    print("Can not find {any}External_Link.txt!\nFormat : {any}External_Link.txt or {any}EL.txt")
+    print("Can not find \{any\}External_Link.txt!\nFormat : \{any\}External_Link.txt or \{any\}EL.txt")
 else :
     print("Choose External Link :" + el_name[0])
     if not os.path.isfile(new_dir+"\\"+el_name[0]) :
         os.rename(fatherDir+"\\"+el_name[0],new_dir+"\\"+el_name[0])
+#PDF -- for intel WW info
+pdf_name = re.compile(".*_WW\d*_.*\.pdf") # {any}_WW{number}_{any}.pdf
+pdf_name = list( filter( pdf_name.match, allDir ) )
+if not pdf_name :
+    if not isAMDPlatform and not isAMIPlatform :
+        print("Can not find \{any\}_WW\{number\}_\{any\}.pdf!\n")
+else :
+    print("Choose PDF :" + pdf_name[0])
+    if not os.path.isfile(new_dir+"\\"+pdf_name[0]) :
+        os.rename(fatherDir+"\\"+pdf_name[0],new_dir+"\\"+pdf_name[0])
+#ME -- for intel
+me_name = re.compile(".*ME.*\.txt") # {any}ME{any}.txt
+me_name = list( filter( me_name.match, allDir ) )
+if not me_name :
+    if not isAMDPlatform and not isAMIPlatform :
+        print("Can not find \{any\}ME\{any\}.txt!\n")
+else :
+    print("Choose ME :" + me_name[0])
+    if not os.path.isfile(new_dir+"\\"+me_name[0]) :
+        os.rename(fatherDir+"\\"+me_name[0],new_dir+"\\"+me_name[0])
+#drivers -- for intel
+dri_name = re.compile(".*drivers.*\.txt") # {any}drivers{any}.txt
+dri_name = list( filter( dri_name.match, allDir ) )
+if not dri_name :
+    if not isAMDPlatform and not isAMIPlatform :
+        print("Can not find \{any\}drivers\{any\}.txt!\n")
+else :
+    print("Choose drivers :" + dri_name[0])
+    if not os.path.isfile(new_dir+"\\"+dri_name[0]) :
+        os.rename(fatherDir+"\\"+dri_name[0],new_dir+"\\"+dri_name[0])
 #====Copy file (from release file)
 os.chdir(release_dir)
 release_all_dir = os.listdir( os.getcwd() )
@@ -141,24 +176,42 @@ if isAMDG4Platform or isG4Platform :
 excelName = list( filter( excelName.match, release_all_dir ) )
 if not excelName :
     if isAMDG4Platform or isG4Platform :
-        print("Can not find Release Note!\nFormat :{any}release note.docx or {any}_Release_Notes.docx")
+        print("Can not find Release Note!\nFormat :\{any\}release note.docx or \{any\}_Release_Notes.docx")
     else :
-        print("Can not find Release Note!\nFormat :{any}Release_Note_{number}.xlsm or {any}Release_Note.xlsm")
+        print("Can not find Release Note!\nFormat :\{any\}Release_Note_\{number\}.xlsm or \{any\}Release_Note.xlsm")
     os.system("pause")
     sys.exit()
 elif len(excelName) == 1 :
     chooseNote = excelName[0]
 else : # multy Note
     chooseStr = "\n".join([f"[{index}] {item}" for index, item in enumerate(excelName)])
-    chooseNote = input(f"Choose one:\n{chooseStr}\n")
+    chooseNote = input(f"You have multy ReleaseNote!\nChoose one:\n{chooseStr}\n:")
     chooseNote = excelName[int(chooseNote)]
     #print("Choose Release Note : " + chooseNote)
-    shutil.copy(release_dir+"\\"+chooseNote, new_dir+"\\"+chooseNote)
+shutil.copy(release_dir+"\\"+chooseNote, new_dir+"\\"+chooseNote)
 #SHA256
 SHA256_file = re.compile(".*\d+_SHA256.txt")
 SHA256_file = list( filter( SHA256_file.match, release_all_dir ) )
+SHA256isGetOutside=False
 if not SHA256_file :
-    print("Can not find {any}[number]_SHA256.txt !")
+    print("Can not find \{any\}[number]_SHA256.txt !")
+    try :
+        print("Try outside folder ~ ")
+        #os.chdir(fatherDir)
+        #print(allDir)
+        SHA256_file = re.compile(".*\d+_SHA256.txt")
+        SHA256_file = list( filter( SHA256_file.match, allDir ) ) 
+        if not SHA256_file :
+            print("Can not find \{any\}[number]_SHA256.txt outside also!")
+        else :
+            print("Choose outside SHA256 :" + SHA256_file[0])
+            SHA256isGetOutside = True
+            os.rename(fatherDir+"\\"+SHA256_file[0],new_dir+"\\"+SHA256_file[0])
+        #os.chdir(release_dir)
+    except Exception as e :
+        #print(e)
+        print("Get outside folder Error : SHA256_file")
+        #os.chdir(release_dir)
 else :
     print("Choose SHA256 :" + SHA256_file[0])
     shutil.copy(release_dir+"\\"+SHA256_file[0], new_dir+"\\"+SHA256_file[0])
@@ -199,7 +252,7 @@ elif os.path.isfile(".\\Global\\BIOS\\"+goal_platform+"_"+goal_version+"_32.bin"
               , new_dir+"\\"+goal_platform+"_"+goal_version+"_32.bin")
     binFile = goal_platform+"_"+goal_version+"_32.bin"
 else :
-    print("Can not find {platform}_{version}_[|16|32].bin !")
+    print("Can not find \{platform\}_\{version\}_[|16|32].bin !")
 #=========Compare info
 #Go to new folder
 os.chdir(new_dir)
@@ -246,7 +299,7 @@ if isAMDG4Platform or isG4Platform :
 
         #Find Item Range
         startIndex = rRowInfoName.index("System BIOS")
-        endIndex = rRowInfoName.index("CHID")
+        endIndex = rRowInfoName.index("CHID") #CHID
     except Exception :
         #print(Exception)
         print("Get release note info! May be ceil(sheet) name error.")
@@ -277,21 +330,20 @@ else :
             else :
                 rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
                 rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
-        elif goal_platform in {"U21","U23"} and not platform in {"U21","U23"} :
-            # new intel U21/U23
+        elif goal_platform in {"U21","U23","U11"} and not platform in {"U21","U23","U11"} :
+            # new intel U21/U23/U11
             rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
             rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
         # include Intel AMI
         else :
             rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[0] )
             rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory", usecols=[1] )
-
         rRowInfoName = rRowInfoName[rRowInfoName.columns[0]].tolist()
         #Find Item Range
         startIndex = rRowInfoName.index("System BIOS Version")
-        endIndex = rRowInfoName.index("Sprint Release Note")
-    except Exception :
-        #print(Exception)
+        endIndex = rRowInfoName.index("Sprint Release Note") # Sprint Release Note
+    except Exception as e :
+        print(e)
         print("Get release note info! May be ceil(sheet) name error.")
         os.system("pause")
         sys.exit()
@@ -303,19 +355,44 @@ if amdz_name :
             amdz_content.append(line)
 #Get SHA256 info
 SHA256_content=[]
+SHA256UTF16le = True
 if SHA256_file :
-    with open(SHA256_file[0], encoding = "utf-16le") as f:
-        for line in f.readlines():
-            SHA256_content.append(line)
+    try : 
+        with open(SHA256_file[0], encoding = "utf-16le") as f:
+            for line in f.readlines():
+                SHA256_content.append(line)
+    except :  # SHA256 is from Outside
+        print("SHA256 is not utf16le, try get default.")
+        SHA256UTF16le = False
+        with open(SHA256_file[0]) as f:
+            for line in f.readlines():
+                SHA256_content.append(line)
 #Get External Link
 if el_name:
     el_content = []
     with open(el_name[0]) as f:
         for line in f.readlines():
             el_content.append(line)
+#Get PDF
+if pdf_name:
+    pdfTables = tabula.read_pdf(pdf_name[0], pages='all', multiple_tables=True,encoding="ISO-8859-1")
+    if not pdfTables[-1].empty :
+        pdfTables.pop()
+#Get ME
+if me_name:
+    me_content = []
+    with open(me_name[0]) as f:
+        for line in f.readlines():
+            me_content.append(line)
+#Get drivers
+if dri_name:
+    dri_content = []
+    with open(dri_name[0], encoding = "utf-16le") as f:
+        for line in f.readlines():
+            dri_content.append(line)
 #Create resault.xml
 try:
-    writer = ExcelWriter("result_RN.xlsx")
+    writer = ExcelWriter(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
     outputFile = []
     outputFile_PlatformHistory = DataFrame( index = rRowInfoName[startIndex:endIndex], \
                                                 columns = ["Release Note Info", "Reference Info", "Result"] )
@@ -323,14 +400,15 @@ try:
     if isG4Platform or isAMDG4Platform :
         outputFile[0].iloc[:, 0] = rRowData[startIndex:endIndex]
     else :
-        outputFile[0].iloc[:, 0] = rRowData[rRowData.columns[0]].tolist()[startIndex:endIndex]
-except Exception:
-    #print(Exception)
-    print("Creat excel fail or result_RN.xlsx being opened!")
+        outputFile[0].iloc[:, 0] = rRowData[rRowData.columns[0]].tolist()[startIndex:endIndex] 
+except Exception as e:
+    print(e)
+    print("Creat excel fail or \{platform\}result_RN.xlsx being opened!")
     os.system("pause")
     sys.exit()
 #common
 rRowInfoName = rRowInfoName[startIndex:endIndex]
+isAMDBlock = False # for Intel new RN - to check once Microcode
 for i in rRowInfoName:
     if type(i) != str : # skip nan
         continue
@@ -363,8 +441,8 @@ for i in rRowInfoName:
                 binary_sum = "0x"+binary_sum.split("x")[-1].upper()
                 outputFile[0].at[i, "Reference Info"] = binary_sum
             continue
-        elif i == "Sprint" :
-            print("Sprint info in local build BCU!")
+        #elif i == "Sprint":
+            #print("Sprint info in local build BCU!")
         elif ( i=="EC/SIO F/W" or i=="SIO FW" or i=="EC/SIO FW" ) and not isAMIPlatform :
             try:
                 sio = bcu_content[bcu_content.index("Super I/O Firmware Version\n")+1].split()[-1]
@@ -391,12 +469,17 @@ for i in rRowInfoName:
         elif i == "PCR[00] TPM 2.0 SHA256" or i == "PCR 0" :
             try :
                 if SHA256_content :
-                    indexOfSHA = SHA256_content.index("TPM2_Startup: Return Code: 0x100\n")+1
-                    sha256 = SHA256_content[indexOfSHA:indexOfSHA+2]
-                    sha256[0] = sha256[0][8:-3]
-                    sha256[1] = sha256[1][8:-2]
-                    sha256 = sha256[0] + "\n" + sha256[1]
-                    outputFile[0].at[i, "Reference Info"] = sha256
+                    if SHA256UTF16le :
+                        indexOfSHA = SHA256_content.index("TPM2_Startup: Return Code: 0x100\n")+1
+                        sha256 = SHA256_content[indexOfSHA:indexOfSHA+2]
+                        sha256[0] = sha256[0][8:-3]
+                        sha256[1] = sha256[1][8:-2]
+                        sha256 = sha256[0] + "\n" + sha256[1]
+                        outputFile[0].at[i, "Reference Info"] = sha256
+                    else :
+                        sha256 = re.compile(".*PCR Index 00:.*")
+                        sha256 = list( filter( sha256.match, SHA256_content ) )[0].split()[-1]
+                        outputFile[0].at[i, "Reference Info"] = sha256
                     continue
             except Exception :
                 print("Get PCR ERROR MSG : ", Exception)
@@ -432,7 +515,12 @@ for i in rRowInfoName:
                     , "System POST TIME", "BIOS MODULE INFORMATION"\
                     , "BOOT TIME (ADK)", "S3 RESUME TIME"\
                     , "Known SI issues ready for retest with this release"\
-                    , "Issue lists", "EC/SIO Functional changes" } :
+                    , "Issue lists", "EC/SIO Functional changes"\
+                    , "Configuration Table Information" \
+                    , "Peripheral Information", "Processor ID" \
+                    , "Intel IHV Information", "AMD IHV Information" \
+                    , "FW Capsule Information" \
+                    } :
             continue
         ##########AMD start
         elif i == "AMD Agesa PI" or i == "AMD Agesa code" :
@@ -518,15 +606,181 @@ for i in rRowInfoName:
                 else :
                     gbev = str(hex(ord(content2.decode()))).split("x")[-1] \
                         +"."+str(hex(ord(content1.decode()))).split("x")[-1]
+                    gbev = gbev[:-1]
+                    
                 outputFile[0].at[i, "Reference Info"] = gbev
             continue
-        elif i == "Processor Microcode Patches" and not isAMIPlatform :
+        elif i == "AMD IHV Information" :
+            isAMDBlock = True
+        elif not i or i == "" or i == "\n" :
+            isAMDBlock = False
+        elif i == "Processor Microcode Patches" and not isAMDBlock and not isAMIPlatform :
             try :
                 pm = bcu_content[bcu_content.index("Processor 1 MicroCode Revision\n")+1].strip()
                 outputFile[0].at[i, "Reference Info"] = "0x"+pm
                 continue
             except :
                 pass
+        elif i == "MRC" :
+            #print("IN MRC")
+            #print(pdfTables[2])
+            try :
+                # tables[2]
+                # "Unnamed: 0" -> Firmware Ingredient
+                # "Unnamed: 1" -> Version 
+                # "Unnamed: 2" -> Source (GIT/RDC) 
+                # "Unnamed: 3" -> Changes
+                for i, df in enumerate(pdfTables, start=0):
+                    if "Firmware Ingredient" in df.columns:
+                        tNum = i
+                mrc = list(pdfTables[tNum].loc[pdfTables[tNum]["Unnamed: 0"]=="Silicon Initialization Code","Unnamed: 1"])
+                mrc = mrc[0].split()[-1]
+                mrc = mrc.split(")")[0]
+                print("mrc:",mrc)
+                outputFile[0].at[i, "Reference Info"] = str(mrc)
+                print(outputFile[0].at[i, "Reference Info"])
+                continue
+            except Exception as e :
+                print(e)
+                pass
+        elif i == "ACM Module" :
+            #print("IN ACM")
+            #print(pdfTables[2])
+            try :
+                # tables[2]
+                # "Unnamed: 0" -> Firmware Ingredient
+                # "Unnamed: 1" -> Version 
+                # "Unnamed: 2" -> Source (GIT/RDC) 
+                # "Unnamed: 3" -> Changes
+                for i, df in enumerate(pdfTables, start=0):
+                    if "Firmware Ingredient" in df.columns:
+                        tNum = i
+                acmNum = pdfTables[tNum][pdfTables[tNum]["Unnamed: 0"]=="Intel® TXT and Intel® Boot Guard ACM* and SINIT"]
+                acmNum = acmNum.index[0]
+                # Intel® TXT and Intel® Boot Guard ACM* and SINIT in line 21, but acm in 20
+                acm = pdfTables[tNum].iloc[acmNum-1]["Unnamed: 1"]
+                print("acm:",acm)
+                outputFile[0].at[i, "Reference Info"] = str(acm)
+                #print(outputFile[0].at[i, "Reference Info"])
+                continue
+            except Exception as e :
+                print(e)
+                pass
+        elif i == "SINIT ACM" :
+            #rint("IN SINIT")
+            #print(pdfTables[2])
+            try :
+                # tables[2]
+                # "Unnamed: 0" -> Firmware Ingredient
+                # "Unnamed: 1" -> Version 
+                # "Unnamed: 2" -> Source (GIT/RDC) 
+                # "Unnamed: 3" -> Changes
+                for i, df in enumerate(pdfTables, start=0):
+                    if "Firmware Ingredient" in df.columns:
+                        tNum = i
+                sinitN = pdfTables[tNum][pdfTables[tNum]["Unnamed: 0"]=="Intel® TXT and Intel® Boot Guard ACM* and SINIT"]
+                sinitN = sinitN.index[0]
+                # Intel® TXT and Intel® Boot Guard ACM* and SINIT in line 21, but sinit in 22
+                sinit = pdfTables[tNum].iloc[sinitN-1]["Unnamed: 1"]
+                print("sinit:",sinit)
+                outputFile[0].at[i, "Reference Info"] = str(sinit)
+                #print(outputFile[0].at[i, "Reference Info"])
+                continue
+            except Exception as e :
+                print(e)
+                pass
+        elif i == "PPAM" :
+            #print("IN PPAM")
+            #print(pdfTables[3])
+            try :
+                for i, df in enumerate(pdfTables, start=0):
+                    if "Ingredient" in df.columns:
+                        tNum = i
+                ppam = list(pdfTables[tNum].loc[pdfTables[tNum]["Ingredients"]=="Intel® Platform Properties Assessment Module (PPAM)","Version"])
+                ppam = ppam[0]
+                print("ppam:",ppam)
+                outputFile[0].at[i, "Reference Info"] = str(ppam)
+                #print(outputFile[0].at[i, "Reference Info"])
+                continue
+            except Exception as e :
+                print(e)
+                pass
+        elif i == "ChipSetinit" :
+            try :
+                if me_name :
+                    chipSetinit = re.compile(".*OEM Chipset Init Version.*")
+                    chipSetinit = list( filter( chipSetinit.match, me_content ) )[0].split()[-1]
+                    outputFile[0].at[i, "Reference Info"] = chipSetinit
+                    continue
+            except :
+                pass
+        elif i == "NPHY FW version" or i == "NPHY FW  version" :
+            try :
+                if me_name :
+                    nphy = re.compile(".*NPHY FW Version.*")
+                    nphy = list( filter( nphy.match, me_content ) )[0].split()[-1]
+                    outputFile[0].at[i, "Reference Info"] = nphy
+                    continue
+            except :
+                pass
+        elif i == "PMC" :
+            try :
+                if me_name :
+                    pmc = re.compile(".*PMC FW Version.*")
+                    pmc = list( filter( pmc.match, me_content ) )[0].split()[-1]
+                    outputFile[0].at[i, "Reference Info"] = pmc
+                    continue
+            except :
+                pass
+        elif i == "I225 Undi Driver" :
+            try :
+                if dri_name :
+                    undi = re.compile(".*2.5G.*")
+                    undi = list( filter( undi.match, dri_content ) )[0].split()[1]
+                    undi = [undi[i:i+2] for i in range(0, len(undi), 2)]
+                    undi = ".".join(str(int(i, 16)) for i in undi)
+                    outputFile[0].at[i, "Reference Info"] = undi
+                    continue
+            except Exception as e :
+                print(e)
+                pass
+        elif i == "PXE UEFI Driver" :
+            try :
+                if dri_name :
+                    pxeUefi = re.compile(".*I219.*")
+                    pxeUefi = list( filter( pxeUefi.match, dri_content ) )[0].split()[1]
+                    pxeUefi = [pxeUefi[i:i+2] for i in range(0, len(pxeUefi), 2)]
+                    pxeUefi = ".".join(str(int(i, 16)) for i in pxeUefi)
+                    outputFile[0].at[i, "Reference Info"] = pxeUefi
+                    continue
+            except Exception as e :
+                print(e)
+                pass
+        ######Intel U21/23 new release have some new items which need to try to get from Function Changes 
+        ###### new U21/23 start
+        elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" \
+                  , "RGB keyboard controller firmware version", "Boot Guard ACM" \
+                  } and not isAMIPlatform :
+            try :
+                changes_content=list(outputFile[0].at["BIOS Functional changes", "Release Note Info"].split("\n"))
+                #re.IGNORECASE that case unsensetive
+                getFromchange = re.compile(".*"+i.split()[0]+".*", re.IGNORECASE) 
+                getFromchange = list( filter( getFromchange.match, changes_content ) )
+                if not getFromchange :
+                    outputFile[0].at[i, "Reference Info"] = "Can not get from Function Changes!"
+                elif len(getFromchange) == 1 :
+                    outputFile[0].at[i, "Reference Info"] = getFromchange[0]
+                else : # multy
+                    outputFile[0].at[i, "Reference Info"] = "\n".join(getFromchange)
+                #print(i+":", end="")
+                #print(getFromchange)
+                #print(outputFile[0].at[i, "Reference Info"])
+                continue
+                #print(changes_content)
+            except Exception as e :
+                print(e)
+                pass
+        ###### new U21/23 end
         ##########Intel end
         ##########AMI start
         elif isAMIPlatform :
@@ -573,7 +827,7 @@ for i in rRowInfoName:
                     if len(me_name) > 0 :
                         mef = me_name[0][3:-4]+"_Consumer"  #ME_[0-9\.]+\.bin
                     else :
-                        print("\nCan not find .\\METools\\FWUpdate\\MEFW\\ME_{version}.bin !")
+                        print("\nCan not find .\\METools\\FWUpdate\\MEFW\\ME_\{version\}.bin !")
                     outputFile[0].at[i, "Reference Info"] = mef
                     continue
                 elif i == "GbE Version" :
@@ -583,16 +837,26 @@ for i in rRowInfoName:
             except :
                 pass
         ##########AMI end
-        ##########G4 end
-        elif i == "System BIOS" :
+        ##########G4 start
+        elif i == "System BIOS" and isAMDG4Platform :
             try:
                 bversion = bcu_content[bcu_content.index("System BIOS Version\n")+1].split()[2]
                 outputFile[0].at[i, "Reference Info"] = "Ver " + bversion
                 continue
             except :
                 pass
-            
         ##########G4 end
+        ##########new U21/U23 start
+        elif ( i == "System BIOS" or i == "HP System Firmware" ) \
+              and \
+             ( not isAMDPlatform and not isAMIPlatform ) : 
+            try:
+                bversion = bcu_content[bcu_content.index("System BIOS Version\n")+1].split()[2]
+                outputFile[0].at[i, "Reference Info"] = bversion
+                continue
+            except :
+                pass
+        ##########new U21/U23 end
         else : 
             pass
         print("Can not find : " + str(i) )
@@ -606,11 +870,27 @@ for i in rRowInfoName:
     if type(i) != str or i == "TOOL REVISION" or i == "NOTE FOR THIS BIOS RELEASE"\
         or i == "System POST TIME" or i == "BOOT TIME (ADK)" \
         or i == "S3 RESUME TIME" or i == "BIOS MODULE INFORMATION" \
-        or i == "EC/SIO Functional changes" : # skip nan
+        or i == "EC/SIO Functional changes" or i == "Configuration Table Information" \
+        or i == "Peripheral Information" or i == "Processor ID" \
+        or i == "Intel IHV Information" or i == "AMD IHV Information" \
+        or i == "FW Capsule Information" or i == "Known SI issues ready for retest with this release" \
+        : # skip nan
         continue
     if str(outputFile[0].at[i, "Release Note Info"]) == "N/A" \
         and str(outputFile[0].at[i, "Reference Info"]) == "N/A" :
-        outputFile[0].at[i, "Result"] = "Both N/A" 
+        outputFile[0].at[i, "Result"] = "Ignore"  #Both N/A
+    elif i == "Build Date" :
+        if set(str(outputFile[0].at[i, "Release Note Info"]).split("/")) \
+         == set(str(outputFile[0].at[i, "Reference Info"]).split("/")) :
+            outputFile[0].at[i, "Result"] = "V" 
+        else :
+            outputFile[0].at[i, "Result"] = "X" 
+    elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" \
+            , "RGB keyboard controller firmware version", "Boot Guard ACM" } :
+        if str(outputFile[0].at[i, "Release Note Info"]) in str(outputFile[0].at[i, "Reference Info"]) :
+            outputFile[0].at[i, "Result"] = "V"  
+        else :
+            outputFile[0].at[i, "Result"] = "X"
     elif str(outputFile[0].at[i, "Release Note Info"]) == str(outputFile[0].at[i, "Reference Info"]) :
         outputFile[0].at[i, "Result"] = "V"  
     else :
@@ -620,8 +900,78 @@ for i in range(len(rRowInfoName) ):
     if outputFile[0].iat[i,2] != outputFile[0].iat[i,2] :
         outputFile[0].iat[i,1] = " "
         outputFile[0].iat[i,0] = " "
+#protect excel
+# current_date = datetime.now().strftime("%Y-%m-%d")
+# current_date_bytes = current_date.encode("utf-8")
+# hashed_key = hashlib.sha256(current_date_bytes).hexdigest()
+# print(hashed_key)
+# print(outputFile[0])
+# print(type(outputFile[0]))
+# outputFile[0].loc[1, "Release Note Info"].protection = openpyxl.styles.Protection(locked=True)
+# for row in rRowInfoName:
+#     print(row)
+#     for col in ["Release Note Info", "Reference Info", "Reference Info"]:
+#         print(col, end=" ")
+#         cell_address = f'{col}{row}'
+#         cell = outputFile_PlatformHistory[cell_address]
+
+#         cell.protection = openpyxl.styles.Protection(locked=True)
+# outputFile[0].security.set_workbook_password(hashed_key)
 #====Safe file
-outputFile_PlatformHistory.to_excel(writer,sheet_name='PlatformHistory')
+outputFile[0] = outputFile[0]
+outputFile_PlatformHistory.to_excel(writer,sheet_name="PlatformHistory")
 writer.close()
 print("\nComparison completed successfully!\n")
+#====Gray line
+print("Start gray line~")
+os.chdir(new_dir)
+workbook = openpyxl.load_workbook(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
+sheet = workbook["PlatformHistory"]
+grayList = []
+grayUnder = "System POST TIME"
+underFlag = False
+for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
+    tempG = row[0].value
+    if tempG == grayUnder:
+        underFlag = True
+    if tempG in grayList or underFlag or row[3].value == "Ignore" :
+        fill = openpyxl.styles.PatternFill(start_color='808080', end_color='808080', fill_type='solid')
+        for cell in row:
+            cell.fill = fill
+workbook.save(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
+"""
+row_index = None
+for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
+    for cell in row:
+        if cell.value == goal :
+            row_index = cell.row
+            break
+if row_index is not None:
+    # gray
+    fill = openpyxl.styles.PatternFill(start_color="808080", end_color="808080", fill_type="solid")
+    for row in sheet.iter_rows(min_row=row_index):
+        for cell in row:
+            cell.fill = fill
+    workbook.save(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
+else:
+    print("Can not find the \"" + goal + "\" to gray the line under it!")
+"""    
+print("End gray line~")
+#====Set width
+print("Star set width and lock form~")
+workbook = openpyxl.load_workbook(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
+sheet = workbook['PlatformHistory']
+sheet.column_dimensions['A'].width = 55
+sheet.column_dimensions['B'].width = 28
+sheet.column_dimensions['C'].width = 28
+#====Get date_sha to lock excel
+current_date = datetime.now().strftime("%Y-%m-%d")
+current_date_bytes = current_date.encode("utf-8")
+hashed_key = hashlib.sha256(current_date_bytes).hexdigest()
+#print(hashed_key)
+sheet.protection.sheet = True
+sheet.protection.password = str(hashed_key)[10]
+sheet.protection.enable()
+print("End set width and lock form~")
+workbook.save(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
 os.system("pause")

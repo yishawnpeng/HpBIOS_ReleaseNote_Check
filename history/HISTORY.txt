@@ -1,10 +1,42 @@
+v9.4 2024-01-17
+-------------
+1.Fix ReleaseNote done copy to result folder.
+2.Get microcode once only
+
+v9.3 2024-01-12
+-------------
+1.Get the outside file "_SHA256.txt"
+2.If "_SHA256" is not encode bt utf16le, then try utf8(usually from winpvt)
+3.Gray out the rows whose result is Ignore
+4.Lock all cell so it cannot be modified
+5.Support new U11 for multy ReleaseNote name
+
+v9.2 2024-01-02
+-------------
+1.Try to get more change from Function Changes
+2.Both NA keyword change to Ignore
+3.Gray out useless item
+
+v9.1 2023-12-29
+-------------
+1.Support read ME.txt/driver.txt info to get ChipSetinit/NPHY/PMC/Undi/PXEUEFI
+2.Can have multy formats when checking build_date
+3.Add platform version in front of result file
+4.Skip more Tittle which not need to check
+
+v9 2023-12-27
+-------------
+1.Support new U21/U23 for multy ReleaseNote name
+2.Can get release folder with the platform name in front of it
+3.Fix the error when missing SHA file (it can pass with worring msg)
+
 v8.1 2023-05-10
 -------------
-1.mod yml let .exe name have _version
+1.Mod yml let .exe name have _version
 
 v8 2023-05-10
 -------------
-1.fix-server-build-different
+1.Fix-server-build-different
 
 v7 2023-05-03
 -------------
