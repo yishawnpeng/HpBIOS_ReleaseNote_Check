@@ -28,7 +28,7 @@ import shutil           #for copy file (os.rename will remove file)
 import docx
 from win32com.client import * # GetFileVersion from exe
 from lib import *
-import tabula-py           #read pdf form
+import tabula-py        #read pdf form
 import openpyxl         #fill coler
 from datetime import datetime   # Protect excel
 import hashlib                  # Protect excel
