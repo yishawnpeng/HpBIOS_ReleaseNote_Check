@@ -28,7 +28,7 @@ import shutil           #for copy file (os.rename will remove file)
 import docx
 from win32com.client import * # GetFileVersion from exe
 from lib import *
-import tabula-py        #read pdf form
+from tabula import read_pdf         #read pdf form
 import openpyxl         #fill coler
 from datetime import datetime   # Protect excel
 import hashlib                  # Protect excel
@@ -375,7 +375,7 @@ if el_name:
             el_content.append(line)
 #Get PDF
 if pdf_name:
-    pdfTables = tabula.read_pdf(pdf_name[0], pages='all', multiple_tables=True,encoding="ISO-8859-1")
+    pdfTables = read_pdf(pdf_name[0], pages='all', multiple_tables=True,encoding="ISO-8859-1")
     if not pdfTables[-1].empty :
         pdfTables.pop()
 #Get ME
