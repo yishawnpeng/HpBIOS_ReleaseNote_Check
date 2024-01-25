@@ -33,7 +33,7 @@ import openpyxl         #fill coler
 from datetime import datetime   # Protect excel
 import hashlib                  # Protect excel
 
-version = "9.4"
+version = "9.6"
 #support G3/G4 (release note docx)
 arg=argparse_function(version)
 
@@ -469,20 +469,24 @@ for i in rRowInfoName:
         elif i == "PCR[00] TPM 2.0 SHA256" or i == "PCR 0" :
             try :
                 if SHA256_content :
-                    if SHA256UTF16le :
-                        indexOfSHA = SHA256_content.index("TPM2_Startup: Return Code: 0x100\n")+1
+                    try : # if SHA256UTF16le :
+                        indexOfSHA = int(SHA256_content.index("TPM2_Startup: Return Code: 0x100\n"))+1
                         sha256 = SHA256_content[indexOfSHA:indexOfSHA+2]
                         sha256[0] = sha256[0][8:-3]
                         sha256[1] = sha256[1][8:-2]
-                        sha256 = sha256[0] + "\n" + sha256[1]
+                        sha256 = ''.join(sha256[0].split()) + ''.join(sha256[1].split())
                         outputFile[0].at[i, "Reference Info"] = sha256
-                    else :
+                    except Exception as e : #else :
+                        print(e)
+                        print("Try to get pcr made of winpvt")
                         sha256 = re.compile(".*PCR Index 00:.*")
                         sha256 = list( filter( sha256.match, SHA256_content ) )[0].split()[-1]
                         outputFile[0].at[i, "Reference Info"] = sha256
                     continue
-            except Exception :
-                print("Get PCR ERROR MSG : ", Exception)
+                else :
+                    print("SHA256_content is empty!")
+            except Exception as e :
+                print("Get PCR ERROR MSG : ", e)
         elif (i == "FUR" or i == "HPBIOSUPDREC") and not isAMIPlatform:
             furV = ""
             if furP :
@@ -881,7 +885,13 @@ for i in rRowInfoName:
         outputFile[0].at[i, "Result"] = "Ignore"  #Both N/A
     elif i == "Build Date" :
         if set(str(outputFile[0].at[i, "Release Note Info"]).split("/")) \
-         == set(str(outputFile[0].at[i, "Reference Info"]).split("/")) :
+        == set(str(outputFile[0].at[i, "Reference Info"]).split("/")) :
+            outputFile[0].at[i, "Result"] = "V" 
+        else :
+            outputFile[0].at[i, "Result"] = "X" 
+    elif i == "PCR[00] TPM 2.0 SHA256" or i == "PCR 0" :
+        if ''.join(str(outputFile[0].at[i, "Release Note Info"]).split()) \
+        == ''.join(str(outputFile[0].at[i, "Reference Info"]).split()):
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
@@ -970,7 +980,7 @@ current_date_bytes = current_date.encode("utf-8")
 hashed_key = hashlib.sha256(current_date_bytes).hexdigest()
 #print(hashed_key)
 sheet.protection.sheet = True
-sheet.protection.password = str(hashed_key)[10]
+sheet.protection.password = str(hashed_key)
 sheet.protection.enable()
 print("End set width and lock form~")
 workbook.save(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")

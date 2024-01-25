@@ -1,3 +1,9 @@
+v9.6 2024-01-25
+-------------
+1.Can get multiple encodings of sha256.txt which get from shell.
+2.Spaces can be ignored when comparing "PCR0".
+3.Full protection password lehth.
+
 v9.5 2024-01-18
 -------------
 1.Fix server build error.
@@ -10,7 +16,7 @@ v9.4 2024-01-17
 v9.3 2024-01-12
 -------------
 1.Get the outside file "_SHA256.txt"
-2.If "_SHA256" is not encode bt utf16le, then try utf8(usually from winpvt)
+2.If "_SHA256" is not encode with utf16le, then try utf8(usually from winpvt)
 3.Gray out the rows whose result is Ignore
 4.Lock all cell so it cannot be modified
 5.Support new U11 for multy ReleaseNote name
