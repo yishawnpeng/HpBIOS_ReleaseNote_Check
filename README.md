@@ -26,7 +26,7 @@ Get following Info fail can also work.
 * Try to Get ME/RC/GbE… (if Intel).
 * Try to get External Link.
 * Try to get System Scope.
-* Try to get MeInfo/Driver.txt.
+* Try to get MeInfo/Drivers.txt.
 
 ## Installation
 1. Clone the repository: ```git clone https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check.git```
