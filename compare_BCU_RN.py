@@ -32,8 +32,10 @@ from tabula import read_pdf         #read pdf form
 import openpyxl         #fill coler
 from datetime import datetime   # Protect excel
 import hashlib                  # Protect excel
+import xml.etree.ElementTree as ET # Read System Scope
+from collections import Counter    # Read System Scope
 
-version = "9.6"
+version = "10"
 #support G3/G4 (release note docx)
 arg=argparse_function(version)
 
@@ -166,6 +168,17 @@ else :
     print("Choose drivers :" + dri_name[0])
     if not os.path.isfile(new_dir+"\\"+dri_name[0]) :
         os.rename(fatherDir+"\\"+dri_name[0],new_dir+"\\"+dri_name[0])
+#SystemScope -- for intel
+SystemScope_name = re.compile(".*SystemScope.*\.xml") # {any}SystemScope{any}.xml
+SystemScope_name = list( filter( SystemScope_name.match, allDir ) )
+if not SystemScope_name :
+    if not isAMDPlatform and not isAMIPlatform :
+        print("Can not find \{any\}SystemScope\{any\}.xml!\n")
+else :
+    SystemScope_name = SystemScope_name[0]
+    print("Choose SystemScope :" + SystemScope_name)
+    if not os.path.isfile(new_dir+"\\"+SystemScope_name) :
+        os.rename(fatherDir+"\\"+SystemScope_name,new_dir+"\\"+SystemScope_name)
 #====Copy file (from release file)
 os.chdir(release_dir)
 release_all_dir = os.listdir( os.getcwd() )
@@ -390,6 +403,27 @@ if dri_name:
     with open(dri_name[0], encoding = "utf-16le") as f:
         for line in f.readlines():
             dri_content.append(line)
+#Get System Scope
+ssgoals=["Reference Code - MRC","ISHC FW Version","TXT ACM version",\
+         "Microcode Version","PMC FW Version","OEM Chipset Init Version"]
+gCount = Counter(ssgoals)
+for event, elem in ET.iterparse(SystemScope_name , events=("start",)):
+    if elem.tag == "Item" :
+        # try to get "version" or maybe "value"
+        if elem.get("Name") in ssgoals :
+            #print(elem.get("Name"), " in Goal.")
+            tempName = elem.get("Name")
+            if gCount[tempName] == 1 :
+                if elem.get("Version") :
+                    tempV = elem.get("Version")
+                elif elem.get("Value") :
+                    tempV = elem.get("Value")
+                else :
+                    print(tempName+" : Can not get from Scope either Value nor Version!")
+                    continue
+                #print(tempName, tempV)
+                gCount[tempName] = tempV
+            continue
 #Create resault.xml
 try:
     writer = ExcelWriter(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
@@ -622,6 +656,9 @@ for i in rRowInfoName:
             try :
                 pm = bcu_content[bcu_content.index("Processor 1 MicroCode Revision\n")+1].strip()
                 outputFile[0].at[i, "Reference Info"] = "0x"+pm
+                if gCount["Microcode Version"] != 1 :
+                    ishc = " \ " + gCount["Microcode Version"]
+                    outputFile[0].at[i, "Reference Info"] += str(ishc)
                 continue
             except :
                 pass
@@ -629,20 +666,35 @@ for i in rRowInfoName:
             #print("IN MRC")
             #print(pdfTables[2])
             try :
+                ################# here from pdf
                 # tables[2]
                 # "Unnamed: 0" -> Firmware Ingredient
                 # "Unnamed: 1" -> Version 
                 # "Unnamed: 2" -> Source (GIT/RDC) 
                 # "Unnamed: 3" -> Changes
-                for i, df in enumerate(pdfTables, start=0):
-                    if "Firmware Ingredient" in df.columns:
-                        tNum = i
-                mrc = list(pdfTables[tNum].loc[pdfTables[tNum]["Unnamed: 0"]=="Silicon Initialization Code","Unnamed: 1"])
-                mrc = mrc[0].split()[-1]
-                mrc = mrc.split(")")[0]
-                print("mrc:",mrc)
-                outputFile[0].at[i, "Reference Info"] = str(mrc)
-                print(outputFile[0].at[i, "Reference Info"])
+                #for i, df in enumerate(pdfTables, start=0):
+                #    if "Firmware Ingredient" in df.columns:
+                #        tNum = i
+                #mrc = list(pdfTables[tNum].loc[pdfTables[tNum]["Unnamed: 0"]=="Silicon Initialization Code","Unnamed: 1"])
+                #mrc = mrc[0].split()[-1]
+                #mrc = mrc.split(")")[0]
+                #print("mrc:",mrc)
+                #outputFile[0].at[i, "Reference Info"] = str(mrc)
+                #print(outputFile[0].at[i, "Reference Info"])
+                ################# here from System Scope
+                if gCount["Reference Code - MRC"] != 1 :
+                    mrc = gCount["Reference Code - MRC"].split("(")[-1][:-1]
+                    print("mrc:",mrc)
+                    outputFile[0].at[i, "Reference Info"] = str(mrc)
+                continue
+            except Exception as e :
+                print(e)
+                pass
+        elif i == "ISH FW version" :
+            try :
+                if gCount["ISHC FW Version"] != 1 :
+                    ishc = gCount["ISHC FW Version"].split("(")[-1][:-1]
+                    outputFile[0].at[i, "Reference Info"] = str(ishc)
                 continue
             except Exception as e :
                 print(e)
@@ -651,21 +703,26 @@ for i in rRowInfoName:
             #print("IN ACM")
             #print(pdfTables[2])
             try :
+                ################# here from pdf
                 # tables[2]
                 # "Unnamed: 0" -> Firmware Ingredient
                 # "Unnamed: 1" -> Version 
                 # "Unnamed: 2" -> Source (GIT/RDC) 
                 # "Unnamed: 3" -> Changes
-                for i, df in enumerate(pdfTables, start=0):
-                    if "Firmware Ingredient" in df.columns:
-                        tNum = i
-                acmNum = pdfTables[tNum][pdfTables[tNum]["Unnamed: 0"]=="Intel® TXT and Intel® Boot Guard ACM* and SINIT"]
-                acmNum = acmNum.index[0]
-                # Intel® TXT and Intel® Boot Guard ACM* and SINIT in line 21, but acm in 20
-                acm = pdfTables[tNum].iloc[acmNum-1]["Unnamed: 1"]
-                print("acm:",acm)
-                outputFile[0].at[i, "Reference Info"] = str(acm)
+                #for i, df in enumerate(pdfTables, start=0):
+                #    if "Firmware Ingredient" in df.columns:
+                #        tNum = i
+                #acmNum = pdfTables[tNum][pdfTables[tNum]["Unnamed: 0"]=="Intel® TXT and Intel® Boot Guard ACM* and SINIT"]
+                #acmNum = acmNum.index[0]
+                ## Intel® TXT and Intel® Boot Guard ACM* and SINIT in line 21, but acm in 20
+                #acm = pdfTables[tNum].iloc[acmNum-1]["Unnamed: 1"]
+                #print("acm:",acm)
+                #outputFile[0].at[i, "Reference Info"] = str(acm)
                 #print(outputFile[0].at[i, "Reference Info"])
+                ################# here from System Scope
+                if gCount["TXT ACM version"] != 1 :
+                    acm = gCount["TXT ACM version"].split("(")[-1][:-1]
+                    outputFile[0].at[i, "Reference Info"] = str(acm)
                 continue
             except Exception as e :
                 print(e)
@@ -716,6 +773,9 @@ for i in rRowInfoName:
                     chipSetinit = list( filter( chipSetinit.match, me_content ) )[0].split()[-1]
                     outputFile[0].at[i, "Reference Info"] = chipSetinit
                     continue
+                elif gCount["OEM Chipset Init Version"] != 1 :
+                    chipSetinit = gCount["OEM Chipset Init Version"]
+                    outputFile[0].at[i, "Reference Info"] = str(chipSetinit)
             except :
                 pass
         elif i == "NPHY FW version" or i == "NPHY FW  version" :
@@ -734,6 +794,9 @@ for i in rRowInfoName:
                     pmc = list( filter( pmc.match, me_content ) )[0].split()[-1]
                     outputFile[0].at[i, "Reference Info"] = pmc
                     continue
+                elif gCount["PMC FW Version"] != 1 :
+                    pmc = gCount["PMC FW Version"].split("(")[-1][:-1]
+                    outputFile[0].at[i, "Reference Info"] = str(pmc)
             except :
                 pass
         elif i == "I225 Undi Driver" :

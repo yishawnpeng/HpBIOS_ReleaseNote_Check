@@ -1,8 +1,12 @@
+v10 2024-02-27
+-------------
+1.Try to get some info from "SystemScope.xml" outside.
+
 v9.6 2024-01-25
 -------------
 1.Can get multiple encodings of sha256.txt which get from shell.
 2.Spaces can be ignored when comparing "PCR0".
-3.Full protection password lehth.
+3.Full protection password length.
 
 v9.5 2024-01-18
 -------------
