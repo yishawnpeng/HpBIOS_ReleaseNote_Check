@@ -25,6 +25,8 @@ Get following Info fail can also work.
 * Try to Get Agesa PI / SMU / PSP /… from amdz(if AMD).
 * Try to Get ME/RC/GbE… (if Intel).
 * Try to get External Link.
+* Try to get System Scope.
+* Try to get MeInfo/Driver.txt.
 
 ## Installation
 1. Clone the repository: ```git clone https://github.com/yishawnpeng/HpBIOS_ReleaseNote_Check.git```
