@@ -1,3 +1,8 @@
+v10.1 2024-03-19
+-------------
+1.Fix if missing "SystemScope.xml" will error.
+2.Fix if the server-building-bios is exist the same folder will error.
+
 v10 2024-02-27
 -------------
 1.Try to get some info from "SystemScope.xml" outside.

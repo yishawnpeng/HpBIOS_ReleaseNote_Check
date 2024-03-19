@@ -68,13 +68,13 @@ if os.path.isdir(release_dir):
     os.chdir(fatherDir)
     new_dir = ".\\"+str(goal_platform)+"_"+str(goal_version)+"_checked"
     if not os.path.exists(new_dir) :
-        print("Create folder:"+new_dir)
+        print("Create folder : " + new_dir)
         os.makedirs(new_dir)
         os.chdir(new_dir)
         new_dir = os.getcwd()
         os.chdir(fatherDir)
     else :
-        print("Folder already exist:"+new_dir)
+        print("Folder already exist : " + new_dir)
         os.chdir(new_dir)
         new_dir = os.getcwd()
         os.chdir(fatherDir)
@@ -83,7 +83,8 @@ elif (list( filter( re.compile(fr'(?=.*{re.escape(goal_platform)})(?=.*{re.escap
     release_dir = re.compile(fr'(?=.*{re.escape(goal_platform)})(?=.*{re.escape(goal_version)})')
     release_dir = list( filter( release_dir.match, allDir ) )
     for i in release_dir :
-        if os.path.isdir(i) :
+        if os.path.isdir(i) and \
+            ( "Fv" not in i and "Buildjob" not in i ) :
             release_dir = ".\\"+i
             #print(i+" is dir")
             break
@@ -93,18 +94,18 @@ elif (list( filter( re.compile(fr'(?=.*{re.escape(goal_platform)})(?=.*{re.escap
     os.chdir(fatherDir)
     new_dir = ".\\"+str(goal_platform)+"_"+str(goal_version)+"_checked"
     if not os.path.exists(new_dir) :
-        print("Create folder:"+new_dir)
+        print("Create folder : " + new_dir)
         os.makedirs(new_dir)
         os.chdir(new_dir)
         new_dir = os.getcwd()
         os.chdir(fatherDir)
     else :
-        print("Folder already exist:"+new_dir)
+        print("Folder already exist : " + new_dir)
         os.chdir(new_dir)
         new_dir = os.getcwd()
         os.chdir(fatherDir)
 else :
-    print("Can not find "+release_dir)
+    print("Can not find : " + release_dir)
     os.system("pause")
     sys.exit()
 #====Move file (from outside)
@@ -116,7 +117,7 @@ if not bcu_name :   #empty
     os.system("pause")
     sys.exit()
 else :
-    print("Choose BCU :" + bcu_name[0])
+    print("Choose BCU : " + bcu_name[0])
     if not os.path.isfile(new_dir+"\\"+bcu_name[0]) :
         os.rename(fatherDir+"\\"+bcu_name[0],new_dir+"\\"+bcu_name[0])
 #AMDZ
@@ -126,7 +127,7 @@ if not amdz_name : # empty
     if isAMDPlatform :
         print("You don't have amdz file !\nFormat : amdz\{any\}.txt")
 else :
-    print("Choose amdz :" + amdz_name[0])
+    print("Choose amdz : " + amdz_name[0])
     if not os.path.isfile(new_dir+"\\"+amdz_name[0]) :
         os.rename(fatherDir+"\\"+amdz_name[0],new_dir+"\\"+amdz_name[0])
 #External Link
@@ -135,7 +136,7 @@ el_name = list( filter( el_name.match, allDir ) )
 if not el_name :
     print("Can not find \{any\}External_Link.txt!\nFormat : \{any\}External_Link.txt or \{any\}EL.txt")
 else :
-    print("Choose External Link :" + el_name[0])
+    print("Choose External Link : " + el_name[0])
     if not os.path.isfile(new_dir+"\\"+el_name[0]) :
         os.rename(fatherDir+"\\"+el_name[0],new_dir+"\\"+el_name[0])
 #PDF -- for intel WW info
@@ -145,7 +146,7 @@ if not pdf_name :
     if not isAMDPlatform and not isAMIPlatform :
         print("Can not find \{any\}_WW\{number\}_\{any\}.pdf!\n")
 else :
-    print("Choose PDF :" + pdf_name[0])
+    print("Choose PDF : " + pdf_name[0])
     if not os.path.isfile(new_dir+"\\"+pdf_name[0]) :
         os.rename(fatherDir+"\\"+pdf_name[0],new_dir+"\\"+pdf_name[0])
 #ME -- for intel
@@ -155,7 +156,7 @@ if not me_name :
     if not isAMDPlatform and not isAMIPlatform :
         print("Can not find \{any\}ME\{any\}.txt!\n")
 else :
-    print("Choose ME :" + me_name[0])
+    print("Choose ME : " + me_name[0])
     if not os.path.isfile(new_dir+"\\"+me_name[0]) :
         os.rename(fatherDir+"\\"+me_name[0],new_dir+"\\"+me_name[0])
 #drivers -- for intel
@@ -165,7 +166,7 @@ if not dri_name :
     if not isAMDPlatform and not isAMIPlatform :
         print("Can not find \{any\}drivers\{any\}.txt!\n")
 else :
-    print("Choose drivers :" + dri_name[0])
+    print("Choose drivers : " + dri_name[0])
     if not os.path.isfile(new_dir+"\\"+dri_name[0]) :
         os.rename(fatherDir+"\\"+dri_name[0],new_dir+"\\"+dri_name[0])
 #SystemScope -- for intel
@@ -176,7 +177,7 @@ if not SystemScope_name :
         print("Can not find \{any\}SystemScope\{any\}.xml!\n")
 else :
     SystemScope_name = SystemScope_name[0]
-    print("Choose SystemScope :" + SystemScope_name)
+    print("Choose SystemScope : " + SystemScope_name)
     if not os.path.isfile(new_dir+"\\"+SystemScope_name) :
         os.rename(fatherDir+"\\"+SystemScope_name,new_dir+"\\"+SystemScope_name)
 #====Copy file (from release file)
@@ -187,6 +188,9 @@ excelName = re.compile("\w.*Release_Note_\d*\.xlsm|\w.*Release_Note.xlsm|\w.*Rel
 if isAMDG4Platform or isG4Platform :
     excelName = re.compile("\w.*release note.docx|\w.*_Release_Notes.docx")
 excelName = list( filter( excelName.match, release_all_dir ) )
+#print("excelName",excelName)
+#print("release_all_dir",release_all_dir)
+#print(os.getcwd())
 if not excelName :
     if isAMDG4Platform or isG4Platform :
         print("Can not find Release Note!\nFormat :\{any\}release note.docx or \{any\}_Release_Notes.docx")
@@ -198,7 +202,7 @@ elif len(excelName) == 1 :
     chooseNote = excelName[0]
 else : # multy Note
     chooseStr = "\n".join([f"[{index}] {item}" for index, item in enumerate(excelName)])
-    chooseNote = input(f"You have multy ReleaseNote!\nChoose one:\n{chooseStr}\n:")
+    chooseNote = input(f"You have multy ReleaseNote!\nChoose one:\n{chooseStr}\n: ")
     chooseNote = excelName[int(chooseNote)]
     #print("Choose Release Note : " + chooseNote)
 shutil.copy(release_dir+"\\"+chooseNote, new_dir+"\\"+chooseNote)
@@ -217,7 +221,7 @@ if not SHA256_file :
         if not SHA256_file :
             print("Can not find \{any\}[number]_SHA256.txt outside also!")
         else :
-            print("Choose outside SHA256 :" + SHA256_file[0])
+            print("Choose outside SHA256 : " + SHA256_file[0])
             SHA256isGetOutside = True
             os.rename(fatherDir+"\\"+SHA256_file[0],new_dir+"\\"+SHA256_file[0])
         #os.chdir(release_dir)
@@ -226,7 +230,7 @@ if not SHA256_file :
         print("Get outside folder Error : SHA256_file")
         #os.chdir(release_dir)
 else :
-    print("Choose SHA256 :" + SHA256_file[0])
+    print("Choose SHA256 : " + SHA256_file[0])
     shutil.copy(release_dir+"\\"+SHA256_file[0], new_dir+"\\"+SHA256_file[0])
 #FUR (from HPFWUPDREC)
 information_parser = Dispatch("Scripting.FileSystemObject")
@@ -407,23 +411,24 @@ if dri_name:
 ssgoals=["Reference Code - MRC","ISHC FW Version","TXT ACM version",\
          "Microcode Version","PMC FW Version","OEM Chipset Init Version"]
 gCount = Counter(ssgoals)
-for event, elem in ET.iterparse(SystemScope_name , events=("start",)):
-    if elem.tag == "Item" :
-        # try to get "version" or maybe "value"
-        if elem.get("Name") in ssgoals :
-            #print(elem.get("Name"), " in Goal.")
-            tempName = elem.get("Name")
-            if gCount[tempName] == 1 :
-                if elem.get("Version") :
-                    tempV = elem.get("Version")
-                elif elem.get("Value") :
-                    tempV = elem.get("Value")
-                else :
-                    print(tempName+" : Can not get from Scope either Value nor Version!")
-                    continue
-                #print(tempName, tempV)
-                gCount[tempName] = tempV
-            continue
+if SystemScope_name :
+    for event, elem in ET.iterparse(SystemScope_name , events=("start",)):
+        if elem.tag == "Item" :
+            # try to get "version" or maybe "value"
+            if elem.get("Name") in ssgoals :
+                #print(elem.get("Name"), " in Goal.")
+                tempName = elem.get("Name")
+                if gCount[tempName] == 1 :
+                    if elem.get("Version") :
+                        tempV = elem.get("Version")
+                    elif elem.get("Value") :
+                        tempV = elem.get("Value")
+                    else :
+                        print(tempName+" : Can not get from Scope either Value nor Version!")
+                        continue
+                    #print(tempName, tempV)
+                    gCount[tempName] = tempV
+                continue
 #Create resault.xml
 try:
     writer = ExcelWriter(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
@@ -684,7 +689,7 @@ for i in rRowInfoName:
                 ################# here from System Scope
                 if gCount["Reference Code - MRC"] != 1 :
                     mrc = gCount["Reference Code - MRC"].split("(")[-1][:-1]
-                    print("mrc:",mrc)
+                    print("mrc : ",mrc)
                     outputFile[0].at[i, "Reference Info"] = str(mrc)
                 continue
             except Exception as e :
@@ -743,7 +748,7 @@ for i in rRowInfoName:
                 sinitN = sinitN.index[0]
                 # Intel® TXT and Intel® Boot Guard ACM* and SINIT in line 21, but sinit in 22
                 sinit = pdfTables[tNum].iloc[sinitN-1]["Unnamed: 1"]
-                print("sinit:",sinit)
+                print("sinit : ",sinit)
                 outputFile[0].at[i, "Reference Info"] = str(sinit)
                 #print(outputFile[0].at[i, "Reference Info"])
                 continue
@@ -759,7 +764,7 @@ for i in rRowInfoName:
                         tNum = i
                 ppam = list(pdfTables[tNum].loc[pdfTables[tNum]["Ingredients"]=="Intel® Platform Properties Assessment Module (PPAM)","Version"])
                 ppam = ppam[0]
-                print("ppam:",ppam)
+                print("ppam : ",ppam)
                 outputFile[0].at[i, "Reference Info"] = str(ppam)
                 #print(outputFile[0].at[i, "Reference Info"])
                 continue
