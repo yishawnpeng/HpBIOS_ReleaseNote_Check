@@ -1,7 +1,7 @@
-v10.2 2024-03-19
+v10.2 2024-04-18
 -------------
 1.Can have multy formats when checking "Processor Microcode Patches".
-2.Optimize protection password length.(cus len limit)
+2.Optimize protection password length.(cuz len limit)
 
 v10.1 2024-03-19
 -------------
