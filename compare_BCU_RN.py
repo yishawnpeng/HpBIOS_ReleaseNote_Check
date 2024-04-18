@@ -35,7 +35,7 @@ import hashlib                  # Protect excel
 import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 
-version = "10"
+version = "10.2"
 #support G3/G4 (release note docx)
 arg=argparse_function(version)
 
@@ -957,9 +957,15 @@ for i in rRowInfoName:
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
+    elif i == "Processor Microcode Patches" :
+        if str(outputFile[0].at[i, "Reference Info"]).split("x") \
+        in str(outputFile[0].at[i, "Release Note Info"]).split("x") : # 0x123 or 0x0123 "in" 0x0123 is both OK
+            outputFile[0].at[i, "Result"] = "V" 
+        else :
+            outputFile[0].at[i, "Result"] = "X" 
     elif i == "PCR[00] TPM 2.0 SHA256" or i == "PCR 0" :
         if ''.join(str(outputFile[0].at[i, "Release Note Info"]).split()) \
-        == ''.join(str(outputFile[0].at[i, "Reference Info"]).split()):
+        == ''.join(str(outputFile[0].at[i, "Reference Info"]).split()) :
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
@@ -1048,7 +1054,7 @@ current_date_bytes = current_date.encode("utf-8")
 hashed_key = hashlib.sha256(current_date_bytes).hexdigest()
 #print(hashed_key)
 sheet.protection.sheet = True
-sheet.protection.password = str(hashed_key)
+sheet.protection.password = str(hashed_key)[0:3]
 sheet.protection.enable()
 print("End set width and lock form~")
 workbook.save(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")

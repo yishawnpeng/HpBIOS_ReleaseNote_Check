@@ -1,3 +1,8 @@
+v10.2 2024-03-19
+-------------
+1.Can have multy formats when checking "Processor Microcode Patches".
+2.Optimize protection password length.(cus len limit)
+
 v10.1 2024-03-19
 -------------
 1.Fix if missing "SystemScope.xml" will error.
