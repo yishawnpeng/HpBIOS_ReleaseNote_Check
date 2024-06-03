@@ -35,7 +35,7 @@ import hashlib                  # Protect excel
 import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 
-version = "10.2"
+version = "10.3"
 #support G3/G4 (release note docx)
 arg=argparse_function(version)
 
@@ -62,11 +62,15 @@ if "Q" in goal_platform or "P" in goal_platform :
     else :
         isG4Platform = True
 #====Create folder
-if os.path.isdir(release_dir):
+if os.path.isdir(release_dir) or goal_platform == "R24":  #R24's folder  Worf_R24_92.49.00
+    if goal_platform == "R24" :
+        release_dir = ".\Worf_R24_"+str(goal_version)[0:2]+"."+str(goal_version)[2:4]+"."+str(goal_version)[4:6]
     os.chdir(release_dir)
     release_dir = os.getcwd()
     os.chdir(fatherDir)
     new_dir = ".\\"+str(goal_platform)+"_"+str(goal_version)+"_checked"
+    if goal_platform == "R24" :
+        new_dir = ".\Worf_R24_"+str(goal_version)[0:2]+"."+str(goal_version)[2:4]+"."+str(goal_version)[4:6]+"_checked"
     if not os.path.exists(new_dir) :
         print("Create folder : " + new_dir)
         os.makedirs(new_dir)
@@ -78,9 +82,9 @@ if os.path.isdir(release_dir):
         os.chdir(new_dir)
         new_dir = os.getcwd()
         os.chdir(fatherDir)
-elif (list( filter( re.compile(fr'(?=.*{re.escape(goal_platform)})(?=.*{re.escape(goal_version)})').match, allDir ) )) : 
+elif (list( filter( re.compile(fr'^(?!Fv)(?=.*{re.escape(goal_platform)})(?=.*{re.escape(goal_version)})').match, allDir ) )) : 
     # as AsteroidsR_PV_U23_926100 need to find more
-    release_dir = re.compile(fr'(?=.*{re.escape(goal_platform)})(?=.*{re.escape(goal_version)})')
+    release_dir = re.compile(fr'^(?!Fv)(?=.*{re.escape(goal_platform)})(?=.*{re.escape(goal_version)})')
     release_dir = list( filter( release_dir.match, allDir ) )
     for i in release_dir :
         if os.path.isdir(i) and \
@@ -121,7 +125,7 @@ else :
     if not os.path.isfile(new_dir+"\\"+bcu_name[0]) :
         os.rename(fatherDir+"\\"+bcu_name[0],new_dir+"\\"+bcu_name[0])
 #AMDZ
-amdz_name = re.compile("amdz.*\.txt")
+amdz_name = re.compile("amdz.*\.txt|.*AMDZ.*\.txt")
 amdz_name = list( filter( amdz_name.match, allDir ) )
 if not amdz_name : # empty
     if isAMDPlatform :
@@ -545,6 +549,8 @@ for i in rRowInfoName:
             if el_name :
                 if isAMDPlatform :                              #AMD
                     svn_pi = re.compile(".*AMD\n")
+                    if goal_platform =="R24" :
+                        svn_pi = re.compile(".*AgesaPkg\n")
                 else :                                          #Intel
                     svn_pi = re.compile(".*HpIntelChipsetPkg\n")
                 svn_pi = list( filter( svn_pi.match, el_content ) )[0].split()[1]
@@ -639,7 +645,9 @@ for i in rRowInfoName:
             except :
                 pass
         elif i == "GbE Version" and not isAMIPlatform and not isAMDPlatform :
-            if binFile :
+            if goal_platform == "R23" :
+                print("R23 dont have GBE!")
+            elif binFile :
                 with open(binFile, 'rb') as f:
                     f.seek(4106,0)
                     content1 = f.read(1)

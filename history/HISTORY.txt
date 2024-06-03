@@ -1,3 +1,10 @@
+v10.3 2024-06-03
+-------------
+1.Fix R24 floder "Worf_R24_02.22.00" can execute correctly.
+2.Optimize AMDZ{any}.txt can get.
+3.External link can get SVM number not only AMD but also AgesaPkg for R24.
+4.Skip check GbE in R23 because it don't support.
+
 v10.2 2024-04-18
 -------------
 1.Can have multy formats when checking "Processor Microcode Patches".
