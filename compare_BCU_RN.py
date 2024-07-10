@@ -35,7 +35,7 @@ import hashlib                  # Protect excel
 import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 
-version = "10.3"
+version = "10.4"
 #support G3/G4 (release note docx)
 arg=argparse_function(version)
 
@@ -188,7 +188,8 @@ else :
 os.chdir(release_dir)
 release_all_dir = os.listdir( os.getcwd() )
 #Release Note
-excelName = re.compile("\w.*Release_Note_\d*\.xlsm|\w.*Release_Note.xlsm|\w.*Release Note_\d*\.xlsm")
+excelName = re.compile("\w.*Release_Note_\d*(_\d*)?\.xlsm|\w.*Release_Note.xlsm|\w.*Release Note_\d*(_\d*)?\.xlsm")
+#build id
 if isAMDG4Platform or isG4Platform :
     excelName = re.compile("\w.*release note.docx|\w.*_Release_Notes.docx")
 excelName = list( filter( excelName.match, release_all_dir ) )
@@ -977,6 +978,18 @@ for i in rRowInfoName:
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
+    elif i == "AMD Agesa PI" or i == "AMD Agesa code" :
+        if str(outputFile[0].at[i, "Release Note Info"]) == str(outputFile[0].at[i, "Reference Info"]) \
+        or ( str(outputFile[0].at[i, "Reference Info"]) in str(outputFile[0].at[i, "Release Note Info"]) ) : # 100b or pi 100b in pi100b
+            outputFile[0].at[i, "Result"] = "V" 
+        else :
+            outputFile[0].at[i, "Result"] = "X" 
+    elif i == "AMD Legacy VBIOS" or i == "AMD VBIOS" :
+        if str(outputFile[0].at[i, "Release Note Info"]) == str(outputFile[0].at[i, "Reference Info"]) \
+        or ( str(outputFile[0].at[i, "Reference Info"]) in str(outputFile[0].at[i, "Release Note Info"]) ) : # 0123.002 in 0123.002.000
+            outputFile[0].at[i, "Result"] = "V" 
+        else :
+            outputFile[0].at[i, "Result"] = "X" 
     elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" \
             , "RGB keyboard controller firmware version", "Boot Guard ACM" } :
         if str(outputFile[0].at[i, "Release Note Info"]) in str(outputFile[0].at[i, "Reference Info"]) :
@@ -1020,6 +1033,7 @@ os.chdir(new_dir)
 workbook = openpyxl.load_workbook(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
 sheet = workbook["PlatformHistory"]
 grayList = []
+blackXList = ["Buff2.efi","UefiBiosConfig.efi"]
 grayUnder = "System POST TIME"
 underFlag = False
 for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
@@ -1030,6 +1044,9 @@ for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
         fill = openpyxl.styles.PatternFill(start_color='808080', end_color='808080', fill_type='solid')
         for cell in row:
             cell.fill = fill
+    if tempG not in grayList and not underFlag and row[3].value == "X" and tempG not in blackXList :
+        font = openpyxl.styles.Font(color='FF0000') # red X
+        row[3].font = font
 workbook.save(str(goal_platform)+"_"+str(goal_version)+"_result_RN.xlsx")
 """
 row_index = None
