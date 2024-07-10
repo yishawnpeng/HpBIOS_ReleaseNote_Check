@@ -1,6 +1,6 @@
 v10.4 2024-07-10
 -------------
-1.Support Name of ReleaseNote "xxxRelease_Note_923300_{BuildID}" if it hase BuildID.
+1.Support Name of ReleaseNote "xxxRelease_Note_923300_{BuildID}" if it has BuildID.
 2.Optimize the comparison results of "Agesa PI" and "VBIOS" to avoid results similar to pi1008 and 1008 that will be regarded as errors
 3.The color of "X" of result change to red.
 

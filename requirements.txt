@@ -3,3 +3,4 @@ pywin32==306
 python-docx==0.8.11
 openpyxl==3.0.9
 tabula-py==2.9.0
+numpy==1.22.3
