@@ -237,6 +237,13 @@ if not SHA256_file :
 else :
     print("Choose SHA256 : " + SHA256_file[0])
     shutil.copy(release_dir+"\\"+SHA256_file[0], new_dir+"\\"+SHA256_file[0])
+    try : # delet outside sha256.txt because both outside and inside have it
+        print("Find outside folder have sha256 or not ~ ")
+        SHA256_file = re.compile(".*\d+_SHA256.txt")
+        SHA256_file = list( filter( SHA256_file.match, allDir ) ) 
+        os.remove(fatherDir+"\\"+SHA256_file[0])
+    except Exception as e :
+        print("Outside don't have sha256.")
 #FUR (from HPFWUPDREC)
 information_parser = Dispatch("Scripting.FileSystemObject")
 furP = ".\\HPFWUPDREC\\HpFirmwareUpdRec64.exe"

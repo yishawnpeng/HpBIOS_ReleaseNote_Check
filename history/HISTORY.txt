@@ -3,6 +3,7 @@ v10.4 2024-07-10
 1.Support Name of ReleaseNote "xxxRelease_Note_923300_{BuildID}" if it has BuildID.
 2.Optimize the comparison results of "Agesa PI" and "VBIOS" to avoid results similar to pi1008 and 1008 that will be regarded as errors
 3.The color of "X" of result change to red.
+4.Need to specify the version of Numpy in requirements.txt to avoid server-build ERROR : "ValueError: numpy.dtype size changed, may indicate binary incompatibility"
 
 v10.3 2024-06-03
 -------------
@@ -33,7 +34,7 @@ v9.6 2024-01-25
 
 v9.5 2024-01-18
 -------------
-1.Fix server build error.
+1.Fix server build error. Add tabula pkg in requirements.txt.
 
 v9.4 2024-01-17
 -------------
