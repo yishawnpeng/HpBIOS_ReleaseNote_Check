@@ -1,7 +1,7 @@
 # HpBIOS_ReleaseNote_Check
 compare_BCU_RN.py is python script that can help you to double confirm info between release_note and BCU(and other unnecessary file)
 
-Support Intel G3/G4/G5/G6/G8/G9/G9R, AMD G4/G5/G6/G8 and AMI consumer platforms.
+Support Intel G3/G4/G5/G6/G8/G9/G9R/G12, AMD G4/G5/G6/G8/G12 and AMI consumer platforms.
 
 ## Build Status
 
