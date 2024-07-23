@@ -188,7 +188,10 @@ else :
 os.chdir(release_dir)
 release_all_dir = os.listdir( os.getcwd() )
 #Release Note
-excelName = re.compile("\w.*Release_Note_\d*(_\d*)?\.xlsm|\w.*Release_Note.xlsm|\w.*Release Note_\d*(_\d*)?\.xlsm")
+excelName = re.compile("\w.*Release_Note_\d*(_\d*)?\.xlsm|\
+                        \w.*Release_Note.xlsm|\
+                        \w.*Release Note_\d*(_\d*)?\.xlsm|\
+                        \w.*Release Note_\w*_\d*\.xlsm|") # for Intel G12
 #build id
 if isAMDG4Platform or isG4Platform :
     excelName = re.compile("\w.*release note.docx|\w.*_Release_Notes.docx")
@@ -354,6 +357,10 @@ else :
                 rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
         elif goal_platform in {"U21","U23","U11"} and not platform in {"U21","U23","U11"} :
             # new intel U21/U23/U11
+            rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
+            rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
+        elif platform in {"X21","X23"} :
+            # new intel G12 X21/X23
             rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
             rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
         # include Intel AMI
