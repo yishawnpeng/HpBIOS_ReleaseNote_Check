@@ -35,14 +35,16 @@ import hashlib                  # Protect excel
 import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 
-version = "10.4"
-#support G3/G4 (release note docx)
+version = "11.1"
+#support AMD G12 X26/27
 arg=argparse_function(version)
 
 AMDPlatformDict = {"R24","R26","S25","S27","S29","T25","T26","T27"}
+AMDG12PlatformDict = {"X26","X27"}
 AMDG4PlatformDict = {"Q26","Q27"}
 isAMDPlatform = None
 isAMDG4Platform = None
+isAMDG12Platform = None
 AMIPlatformDict = {"U24"}
 isAMIPlatform = None
 isG4Platform = None
@@ -61,6 +63,9 @@ if "Q" in goal_platform or "P" in goal_platform :
         isAMDG4Platform = True
     else :
         isG4Platform = True
+#====Check G12
+if goal_platform in AMDG12PlatformDict :
+    isAMDG12Platform = True
 #====Create folder
 if os.path.isdir(release_dir) or goal_platform == "R24":  #R24's folder  Worf_R24_92.49.00
     if goal_platform == "R24" :
@@ -340,12 +345,14 @@ if isAMDG4Platform or isG4Platform :
 else :
     rName = chooseNote
     platform = rName.split("_")[2]
+    if isAMDG12Platform :
+        platform = rName.split("_")[1]
     version = rName.split("_")[-1].split(".")[0]
     isR = True if rName.split("_")[0][-1] == "R" else False
     isAMIPlatform = True if goal_platform in AMIPlatformDict else False
     if isAMIPlatform :              # \w.*Release_Note.xlsm
         version = "".join(bcu_content[bcu_content.index("BIOS Revision\n")+1].strip()[1:].split("."))
-    isAMDPlatform = True if goal_platform in AMDPlatformDict else False
+    isAMDPlatform = True if goal_platform in AMDPlatformDict or isAMDG12Platform else False
     if goal_platform != str(platform) or goal_version != str(version) :
         print("\nYour INPUT plateform_version is different with geted release note plateform_version!\nYou might ckeck!\n")
     ##Get item name and info of this time
@@ -353,8 +360,13 @@ else :
         #Item name              :   usecols=[0]
         #Get from Release Note  :   usecols=[1]
         if isAMDPlatform :
-            rRowInfoName = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
-            rRowData = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
+            if isAMDG12Platform :
+                # new intel G12 X26/X27
+                rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
+                rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
+            else :
+                rRowInfoName = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
+                rRowData = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
         elif platform in {"U21","U23"} :
             if isR :
                 rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[0] )
@@ -594,6 +606,10 @@ for i in rRowInfoName:
                 outputFile[0].at[i, "Reference Info"] = agesaPI
                 continue
         elif i == "PSP FW" :
+            if isAMDG12Platform :
+                PSPforG12AMD = bcu_content[bcu_content.index("AMD PSP FW Version\n")+1].strip()
+                outputFile[0].at[i, "Reference Info"] = PSPforG12AMD
+                continue
             if amdz_name :
                 PSPandSMU = re.compile("SMU:.*")
                 PSPandSMU = list( filter( PSPandSMU.match, amdz_content ) )
@@ -615,6 +631,9 @@ for i in rRowInfoName:
                 outputFile[0].at[i, "Reference Info"] = realPSPFW
                 continue
         elif i == "SMU FW" : #maybe dec to hex
+            if isAMDG12Platform :
+                print("AMDZ can't get SMU in G12 now!!")
+                continue
             if amdz_name :
                 smufw = PSPandSMU[1].split("(")[0]
                 outputFile[0].at[i, "Reference Info"] = smufw
