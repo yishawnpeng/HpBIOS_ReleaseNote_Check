@@ -1,3 +1,7 @@
+v11.1 2025-04-29
+-------------
+1.Update for AMD G12 release note file name changed.
+
 v11 2024-07-23
 -------------
 1.Support Intel/AMD G12
