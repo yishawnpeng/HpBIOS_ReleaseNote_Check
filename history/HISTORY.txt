@@ -1,3 +1,11 @@
+v12 2025-06-02
+-------------
+1.Change Multi-ReleaseNote name detect.
+2.Revert U21/23 sheet name.
+3.Change detect PI from BCU instate of amdz.
+4.Fix if SMU not exit will not break process.
+5.Chaage Compare function of Microcode/PI/SIO/Sprint.
+
 v11.1 2025-04-29
 -------------
 1.Update for AMD G12 release note file name changed.
