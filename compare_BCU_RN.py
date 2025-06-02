@@ -35,7 +35,7 @@ import hashlib                  # Protect excel
 import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 
-version = "11.1"
+version = "12"
 #support AMD G12 X26/27
 arg=argparse_function(version)
 
@@ -197,6 +197,7 @@ excelName = re.compile("\w.*Release_Note_\d*(_\d*)?\.xlsm|\
                         \w.*Release_Note.xlsm|\
                         \w.*Release Note_\d*(_\d*)?\.xlsm|\
                         \w.*Release Note_\w*_\d*\.xlsm|") # for Intel G12
+excelName = re.compile(r"^(?!~\$).*Release[ _]Note[\w\d_]*\.xlsm", re.IGNORECASE)
 #build id
 if isAMDG4Platform or isG4Platform :
     excelName = re.compile("\w.*release note.docx|\w.*_Release_Notes.docx")
@@ -367,13 +368,17 @@ else :
             else :
                 rRowInfoName = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[0] )
                 rRowData = read_excel( rName, sheet_name = "AMDPlatformHistory", usecols=[1] )
-        elif platform in {"U21","U23"} :
+        elif platform in {"U21","U23"} : # roll back to "PlatformHistory"
             if isR :
-                rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[0] )
-                rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[1] )
+                #rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[0] )
+                rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
+                #rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY23", usecols=[1] )
+                rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
             else :
-                rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
-                rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
+                #rRowInfoName = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[0] )
+                rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
+                #rRowData = read_excel( rName, sheet_name = "IntelPlatformHistory_FY22", usecols=[1] )
+                rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
         elif goal_platform in {"U21","U23","U11"} and not platform in {"U21","U23","U11"} :
             # new intel U21/U23/U11
             rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
@@ -600,11 +605,18 @@ for i in rRowInfoName:
             continue
         ##########AMD start
         elif i == "AMD Agesa PI" or i == "AMD Agesa code" :
-            if amdz_name :
-                agesaPI = re.compile("AGESA:.*")
-                agesaPI = list( filter( agesaPI.match, amdz_content ) )[0].split()[-1] #agesaPI = agesaPI[0].split()[-1]
+            # if amdz_name :
+            #     agesaPI = re.compile("AGESA:.*") 
+            #     agesaPI = list( filter( agesaPI.match, amdz_content ) )[0].split()[-1] #agesaPI = agesaPI[0].split()[-1]
+            #     outputFile[0].at[i, "Reference Info"] = agesaPI
+            #     continue
+            # change detect PI from BCU instate of amdz
+            try :
+                agesaPI = bcu_content[bcu_content.index("Reference Code Revision\n")+1].split()[-1]
                 outputFile[0].at[i, "Reference Info"] = agesaPI
                 continue
+            except :
+                pass
         elif i == "PSP FW" :
             if isAMDG12Platform :
                 PSPforG12AMD = bcu_content[bcu_content.index("AMD PSP FW Version\n")+1].strip()
@@ -614,21 +626,24 @@ for i in rRowInfoName:
                 PSPandSMU = re.compile("SMU:.*")
                 PSPandSMU = list( filter( PSPandSMU.match, amdz_content ) )
                 PSPandSMU = PSPandSMU[0].split()
-                pspfw = PSPandSMU[2]
-                if "(" in pspfw  :
-                    pspfw = pspfw.split("(")[1][:-1]
-                else :
-                    pspfw = pspfw[2:]
-                realPSPFW = ""
-                for j in range(0,len(pspfw),2) :
-                    if pspfw[j] == "0" and pspfw[j+1] == "0" :
-                        realPSPFW = realPSPFW + "0."
-                    elif pspfw[j] == "0" and pspfw[j+1] != "0" :
-                        realPSPFW = realPSPFW + pspfw[j+1] + "."
-                    else : 
-                        realPSPFW = realPSPFW + pspfw[j] + pspfw[j+1] + "."
-                realPSPFW = realPSPFW[:-1]
-                outputFile[0].at[i, "Reference Info"] = realPSPFW
+                try :
+                    pspfw = PSPandSMU[2]
+                    if "(" in pspfw  :
+                        pspfw = pspfw.split("(")[1][:-1]
+                    else :
+                        pspfw = pspfw[2:]
+                    realPSPFW = ""
+                    for j in range(0,len(pspfw),2) :
+                        if pspfw[j] == "0" and pspfw[j+1] == "0" :
+                            realPSPFW = realPSPFW + "0."
+                        elif pspfw[j] == "0" and pspfw[j+1] != "0" :
+                            realPSPFW = realPSPFW + pspfw[j+1] + "."
+                        else : 
+                            realPSPFW = realPSPFW + pspfw[j] + pspfw[j+1] + "."
+                    realPSPFW = realPSPFW[:-1]
+                    outputFile[0].at[i, "Reference Info"] = realPSPFW
+                except :
+                   print("PSP formal not correct! May not exit!") 
                 continue
         elif i == "SMU FW" : #maybe dec to hex
             if isAMDG12Platform :
@@ -872,8 +887,8 @@ for i in rRowInfoName:
                 pass
         ######Intel U21/23 new release have some new items which need to try to get from Function Changes 
         ###### new U21/23 start
-        elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" \
-                  , "RGB keyboard controller firmware version", "Boot Guard ACM" \
+        elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" 
+                  , "RGB keyboard controller firmware version", "Boot Guard ACM" 
                   } and not isAMIPlatform :
             try :
                 changes_content=list(outputFile[0].at["BIOS Functional changes", "Release Note Info"].split("\n"))
@@ -1000,8 +1015,11 @@ for i in rRowInfoName:
         else :
             outputFile[0].at[i, "Result"] = "X" 
     elif i == "Processor Microcode Patches" :
-        if str(outputFile[0].at[i, "Reference Info"]).split("x") \
-        in str(outputFile[0].at[i, "Release Note Info"]).split("x") : # 0x123 or 0x0123 "in" 0x0123 is both OK
+        if str(outputFile[0].at[i, "Reference Info"]).split("x")[-1] \
+        in str(outputFile[0].at[i, "Release Note Info"]).strip().lower().removeprefix("0x", "") : 
+        #if int(str(outputFile[0].at[i, "Reference Info"]).strip().lower().replace("0x", ""), 16)\
+        #== int(str(outputFile[0].at[i, "Release Note Info"]).strip().lower().replace("0x", ""), 16) :
+            # 0x123 or 0x0123 "in" 0x0123 is both OK
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
@@ -1011,20 +1029,17 @@ for i in rRowInfoName:
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
-    elif i == "AMD Agesa PI" or i == "AMD Agesa code" :
+    elif i in{ "AMD Agesa PI", "AMD Agesa code", "AMD Legacy VBIOS", "AMD VBIOS", "EC/SIO F/W"} :
+        # 100b or pi 100b in pi100b
+        # 0123.002 in 0123.002.000
+        # 9.8.26 in 9.8.26(Production signed)
         if str(outputFile[0].at[i, "Release Note Info"]) == str(outputFile[0].at[i, "Reference Info"]) \
-        or ( str(outputFile[0].at[i, "Reference Info"]) in str(outputFile[0].at[i, "Release Note Info"]) ) : # 100b or pi 100b in pi100b
+        or ( str(outputFile[0].at[i, "Reference Info"]) in str(outputFile[0].at[i, "Release Note Info"]) ) : 
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
-    elif i == "AMD Legacy VBIOS" or i == "AMD VBIOS" :
-        if str(outputFile[0].at[i, "Release Note Info"]) == str(outputFile[0].at[i, "Reference Info"]) \
-        or ( str(outputFile[0].at[i, "Reference Info"]) in str(outputFile[0].at[i, "Release Note Info"]) ) : # 0123.002 in 0123.002.000
-            outputFile[0].at[i, "Result"] = "V" 
-        else :
-            outputFile[0].at[i, "Result"] = "X" 
-    elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" \
-            , "RGB keyboard controller firmware version", "Boot Guard ACM" } :
+    elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" 
+            , "RGB keyboard controller firmware version", "Boot Guard ACM", "AMD GOP EFI Driver" } :
         if str(outputFile[0].at[i, "Release Note Info"]) in str(outputFile[0].at[i, "Reference Info"]) :
             outputFile[0].at[i, "Result"] = "V"  
         else :
