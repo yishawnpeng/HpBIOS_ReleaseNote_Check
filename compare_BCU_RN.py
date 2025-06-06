@@ -35,7 +35,7 @@ import hashlib                  # Protect excel
 import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 
-version = "12"
+version = "12.1"
 #support AMD G12 X26/27
 arg=argparse_function(version)
 
@@ -1016,7 +1016,7 @@ for i in rRowInfoName:
             outputFile[0].at[i, "Result"] = "X" 
     elif i == "Processor Microcode Patches" :
         if str(outputFile[0].at[i, "Reference Info"]).split("x")[-1] \
-        in str(outputFile[0].at[i, "Release Note Info"]).strip().lower().removeprefix("0x", "") : 
+        in str(outputFile[0].at[i, "Release Note Info"]).strip().lower().removeprefix("0x") : 
         #if int(str(outputFile[0].at[i, "Reference Info"]).strip().lower().replace("0x", ""), 16)\
         #== int(str(outputFile[0].at[i, "Release Note Info"]).strip().lower().replace("0x", ""), 16) :
             # 0x123 or 0x0123 "in" 0x0123 is both OK

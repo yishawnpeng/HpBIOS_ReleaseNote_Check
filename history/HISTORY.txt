@@ -1,3 +1,7 @@
+v12.1 2025-06-06
+-------------
+1.Fix process will crash when compare Microcode.
+
 v12 2025-06-02
 -------------
 1.Change Multi-ReleaseNote name detect.
@@ -5,6 +9,7 @@ v12 2025-06-02
 3.Change detect PI from BCU instate of amdz.
 4.Fix if SMU not exit will not break process.
 5.Chaage Compare function of Microcode/PI/SIO/Sprint.
+6.Add local build .bat
 
 v11.1 2025-04-29
 -------------
