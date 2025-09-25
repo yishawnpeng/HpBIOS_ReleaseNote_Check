@@ -34,13 +34,14 @@ from datetime import datetime   # Protect excel
 import hashlib                  # Protect excel
 import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
+from chardet import detect      # check bcu encoding
 
-version = "12.1"
+version = "13"
 #support AMD G12 X26/27
 arg=argparse_function(version)
 
 AMDPlatformDict = {"R24","R26","S25","S27","S29","T25","T26","T27"}
-AMDG12PlatformDict = {"X26","X27"}
+AMDG12PlatformDict = {"X26","X27","Y26"}
 AMDG4PlatformDict = {"Q26","Q27"}
 isAMDPlatform = None
 isAMDG4Platform = None
@@ -295,8 +296,13 @@ else :
 #Go to new folder
 os.chdir(new_dir)
 #Get BCU info
+with open(bcu_name[0], 'rb') as f:
+    tdata = f.read(1024)
+result = detect(tdata) # chardet.detect
+encoding = result['encoding'] or 'utf-8'  # default utf-8
+print(f"BCU encoding：{encoding}")
 bcu_content=[]
-with open(bcu_name[0]) as f:
+with open(bcu_name[0], 'r', encoding=encoding) as f:
     for line in f.readlines():
         bcu_content.append(line)
 #Get Release Note info
@@ -362,7 +368,7 @@ else :
         #Get from Release Note  :   usecols=[1]
         if isAMDPlatform :
             if isAMDG12Platform :
-                # new intel G12 X26/X27
+                # new amd G12 X26/X27
                 rRowInfoName = read_excel( rName, sheet_name = "PlatformHistory", usecols=[0] )
                 rRowData = read_excel( rName, sheet_name = "PlatformHistory", usecols=[1] )
             else :
@@ -625,8 +631,13 @@ for i in rRowInfoName:
             if amdz_name :
                 PSPandSMU = re.compile("SMU:.*")
                 PSPandSMU = list( filter( PSPandSMU.match, amdz_content ) )
+                if len(PSPandSMU) < 1 :
+                    print("PSP & SMU version string not in AMDZ! May need update amdz-tool to get!") 
+                    continue
                 PSPandSMU = PSPandSMU[0].split()
                 try :
+                    # string in amdz "SMU:           11.101.14.0(B650E00) --740D3E00"
+                    # psp version is 0.3E.D.74
                     pspfw = PSPandSMU[2]
                     if "(" in pspfw  :
                         pspfw = pspfw.split("(")[1][:-1]
@@ -643,13 +654,13 @@ for i in rRowInfoName:
                     realPSPFW = realPSPFW[:-1]
                     outputFile[0].at[i, "Reference Info"] = realPSPFW
                 except :
-                   print("PSP formal not correct! May not exit!") 
+                   print("PSP formal not correct!") 
                 continue
         elif i == "SMU FW" : #maybe dec to hex
-            if isAMDG12Platform :
-                print("AMDZ can't get SMU in G12 now!!")
-                continue
-            if amdz_name :
+            #if isAMDG12Platform :
+            #    print("AMDZ can't get SMU in G12 now!!")
+            #    continue
+            if amdz_name and len(PSPandSMU) > 1 :
                 smufw = PSPandSMU[1].split("(")[0]
                 outputFile[0].at[i, "Reference Info"] = smufw
                 continue
@@ -991,8 +1002,8 @@ for i in rRowInfoName:
         print("Can not find : " + str(i) )
         outputFile[0].at[i, "Reference Info"] = "N/A"
 
-outputFile[0]["Release Note Info"].fillna(value="N/A",inplace=True)
-outputFile[0]["Reference Info"].fillna(value="N/A",inplace=True)
+outputFile[0]["Release Note Info"] = outputFile[0]["Release Note Info"].fillna("N/A")
+outputFile[0]["Reference Info"] = outputFile[0]["Reference Info"].fillna("N/A")
 #=========Resault
 #compare
 for i in rRowInfoName:
@@ -1016,7 +1027,7 @@ for i in rRowInfoName:
             outputFile[0].at[i, "Result"] = "X" 
     elif i == "Processor Microcode Patches" :
         if str(outputFile[0].at[i, "Reference Info"]).split("x")[-1] \
-        in str(outputFile[0].at[i, "Release Note Info"]).strip().lower().removeprefix("0x") : 
+        in str(outputFile[0].at[i, "Release Note Info"]).strip().removeprefix("0x") : 
         #if int(str(outputFile[0].at[i, "Reference Info"]).strip().lower().replace("0x", ""), 16)\
         #== int(str(outputFile[0].at[i, "Release Note Info"]).strip().lower().replace("0x", ""), 16) :
             # 0x123 or 0x0123 "in" 0x0123 is both OK
@@ -1056,7 +1067,7 @@ for i in range(len(rRowInfoName) ):
 #protect excel
 # current_date = datetime.now().strftime("%Y-%m-%d")
 # current_date_bytes = current_date.encode("utf-8")
-# hashed_key = hashlib.sha256(current_date_bytes).hexdigest()
+# hashed_key = hashlib.sha256(current_date_bytes).hexdigest() # hashlib.sha256
 # print(hashed_key)
 # print(outputFile[0])
 # print(type(outputFile[0]))
@@ -1124,7 +1135,7 @@ sheet.column_dimensions['C'].width = 28
 #====Get date_sha to lock excel
 current_date = datetime.now().strftime("%Y-%m-%d")
 current_date_bytes = current_date.encode("utf-8")
-hashed_key = hashlib.sha256(current_date_bytes).hexdigest()
+hashed_key = hashlib.sha256(current_date_bytes).hexdigest() # hashlib.sha256
 #print(hashed_key)
 sheet.protection.sheet = True
 sheet.protection.password = str(hashed_key)[0:3]

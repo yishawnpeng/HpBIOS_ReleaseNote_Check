@@ -1,3 +1,11 @@
+v13 2025-09-25
+-------------
+1.Support AMD DM Y26.
+2.The BCU file support multy decode.
+3.Optimize PSP FW value check.
+4.Optimize output result excel for pandas rules update.
+5.Optimize Microcode compare
+
 v12.1 2025-06-06
 -------------
 1.Fix process will crash when compare Microcode.
