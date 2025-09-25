@@ -9,51 +9,60 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+
     - name: Set up Python 3.10
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-          python-version: '3.10'
+        python-version: '3.10'
 
     - name: Set up ENV
       run: |
         chcp 65001
-        echo ("RELEASE_VERSION=" + $env:GITHUB_REF.replace('refs/tags/', '')) >> $env:GITHUB_ENV
-        echo ("RELEASE_TITLE=compare_BCU_RN_" + $env:GITHUB_REF.replace('refs/tags/', '') + "_windows_64bit") >> $env:GITHUB_ENV
-        echo ("RELEASE_FILENAME=compare_BCU_RN_" + $env:GITHUB_REF.replace('refs/tags/', '') + "_windows_64bit.zip") >> $env:GITHUB_ENV
+        $tag = $env:GITHUB_REF -replace 'refs/tags/', ''
+        echo "RELEASE_VERSION=$tag" >> $env:GITHUB_ENV
+        echo "RELEASE_TITLE=compare_BCU_RN_${tag}_windows_64bit" >> $env:GITHUB_ENV
+        echo "RELEASE_FILENAME=compare_BCU_RN_${tag}_windows_64bit.zip" >> $env:GITHUB_ENV
         git fetch --tags --force
-    - name: Get tag message
-      id: tag_data
-      uses: ericcornelissen/git-tag-annotation-action@v2
+
+    - name: Get Tag Message (GitHub CLI)
+      id: tag_message
+      run: |
+        gh release view ${{ env.RELEASE_VERSION }} --json body -q ".body" > tag_body.txt || echo "" > tag_body.txt
+        set /p TAG_BODY=<tag_body.txt
+        echo "TAG_BODY=%TAG_BODY%" >> $env:GITHUB_ENV
+      shell: cmd
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Test ENV
       run: |
-        echo $RELEASE_VERSION
-        echo ${{ env.RELEASE_VERSION }}
-        echo $RELEASE_TITLE
-        echo ${{ env.RELEASE_TITLE }}
-        echo $RELEASE_FILENAME
-        echo ${{ env.RELEASE_FILENAME }}
-        echo $TAG_MESSAGE
-        echo '${{ steps.tag_data.outputs.git-tag-annotation }}'
+        echo RELEASE_VERSION=${{ env.RELEASE_VERSION }}
+        echo RELEASE_TITLE=${{ env.RELEASE_TITLE }}
+        echo RELEASE_FILENAME=${{ env.RELEASE_FILENAME }}
+        echo TAG_BODY=${{ env.TAG_BODY }}
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
+
     - name: Build with PyInstaller for windows
       run: |
-        pyinstaller --noconfirm --distpath %cd%\ --name compare_BCU_RN_${{ env.RELEASE_VERSION }}.exe --onefile %cd%\compare_BCU_RN.py
+        pyinstaller --noconfirm --distpath %cd%\ --name compare_BCU_RN_%RELEASE_VERSION%.exe --onefile %cd%\compare_BCU_RN.py
       shell: cmd
 
     - name: Archive release
-      run: 7z a -tzip ${{ env.RELEASE_FILENAME }} compare_BCU_RN_${{ env.RELEASE_VERSION }}.exe
+      run: 7z a -tzip %RELEASE_FILENAME% compare_BCU_RN_%RELEASE_VERSION%.exe
+      shell: cmd
 
     - name: Create GitHub Release with asset
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ env.RELEASE_VERSION }}
         name: ${{ env.RELEASE_TITLE }}
-        body: ${{ steps.tag_data.outputs.git-tag-annotation }}
+        body: ${{ env.TAG_BODY }}
         draft: false
         prerelease: false
         files: ${{ env.RELEASE_FILENAME }}
