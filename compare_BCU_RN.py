@@ -36,7 +36,7 @@ import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 from chardet import detect      # check bcu encoding
 
-version = "13"
+version = "13.2"
 #support AMD G12 X26/27
 arg=argparse_function(version)
 
