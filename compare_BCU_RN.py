@@ -36,7 +36,7 @@ import xml.etree.ElementTree as ET # Read System Scope
 from collections import Counter    # Read System Scope
 from chardet import detect      # check bcu encoding
 
-version = "13.2"
+version = "13.3"
 #support AMD G12 X26/27
 arg=argparse_function(version)
 
@@ -666,15 +666,18 @@ for i in rRowInfoName:
                 continue
         elif i == "AMD Legacy VBIOS" or i == "AMD VBIOS" :
             if amdz_name :
-                vBIOS = re.compile("VBIOS Info.*")
-                vBIOS = list( filter( vBIOS.match, amdz_content ) )[0].split()[3][0:-1]
-                outputFile[0].at[i, "Reference Info"] = vBIOS
-                continue
+                try :
+                    vBIOS = re.compile("VBIOS Info.*")
+                    vBIOS = list( filter( vBIOS.match, amdz_content ) )[0].split()[3][0:-1]
+                    outputFile[0].at[i, "Reference Info"] = vBIOS
+                    continue
+                except Exception:
+                    print("AMD VBIOS ERROR MSG : ", Exception)
         elif i == "AMD GOP EFI Driver" or i == "AMD GOP" :
             try :
                 gOP = re.compile("Rev.*")
                 gOP = list( filter( gOP.match, bcu_content[bcu_content.index("Video BIOS Version\n")+1].split() ) )
-                gOP = gOP[0][4:-4]
+                gOP = gOP[0]
                 outputFile[0].at[i, "Reference Info"] = gOP
                 continue
             except Exception:
@@ -1023,6 +1026,9 @@ for i in rRowInfoName:
         if set(str(outputFile[0].at[i, "Release Note Info"]).split("/")) \
         == set(str(outputFile[0].at[i, "Reference Info"]).split("/")) :
             outputFile[0].at[i, "Result"] = "V" 
+        elif to_datetime(outputFile[0].at[i, "Release Note Info"]).date()\
+            == to_datetime(outputFile[0].at[i, "Reference Info"]).date() :
+            outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
     elif i == "Processor Microcode Patches" :
@@ -1040,21 +1046,18 @@ for i in rRowInfoName:
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
-    elif i in{ "AMD Agesa PI", "AMD Agesa code", "AMD Legacy VBIOS", "AMD VBIOS", "EC/SIO F/W"} :
+    elif i in{ "AMD Agesa PI", "AMD Agesa code", "AMD Legacy VBIOS", "AMD VBIOS", "EC/SIO F/W" \
+              , "AMD GOP EFI Driver", "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW"\
+              ,"Fingerprint FW", "RGB keyboard controller firmware version", "Boot Guard ACM"} :
         # 100b or pi 100b in pi100b
         # 0123.002 in 0123.002.000
         # 9.8.26 in 9.8.26(Production signed)
         if str(outputFile[0].at[i, "Release Note Info"]) == str(outputFile[0].at[i, "Reference Info"]) \
-        or ( str(outputFile[0].at[i, "Reference Info"]) in str(outputFile[0].at[i, "Release Note Info"]) ) : 
+        or ( str(outputFile[0].at[i, "Reference Info"]) in str(outputFile[0].at[i, "Release Note Info"]) )\
+        or ( str(outputFile[0].at[i, "Release Note Info"]) in str(outputFile[0].at[i, "Reference Info"]) ) : 
             outputFile[0].at[i, "Result"] = "V" 
         else :
             outputFile[0].at[i, "Result"] = "X" 
-    elif i in { "Sprint", "Camera FW", "Touch controller FW", "Clickpad FW", "Fingerprint FW" 
-            , "RGB keyboard controller firmware version", "Boot Guard ACM", "AMD GOP EFI Driver" } :
-        if str(outputFile[0].at[i, "Release Note Info"]) in str(outputFile[0].at[i, "Reference Info"]) :
-            outputFile[0].at[i, "Result"] = "V"  
-        else :
-            outputFile[0].at[i, "Result"] = "X"
     elif str(outputFile[0].at[i, "Release Note Info"]) == str(outputFile[0].at[i, "Reference Info"]) :
         outputFile[0].at[i, "Result"] = "V"  
     else :

@@ -6,7 +6,7 @@ if exist compare_BCU_RN.spec (
     echo No spec file, using .py to build...
     pyinstaller -F compare_BCU_RN.py
 )
-
+echo 
 if %errorlevel% == 0 (
     echo Build Pass : please check \dist\compare_BCU_RN.exe
 

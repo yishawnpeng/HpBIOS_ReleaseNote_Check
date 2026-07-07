@@ -1,3 +1,8 @@
+v13.3 2026-07-07
+-------------
+1.Optimize "AMD GOP" and "AMD VBIOS" compare.
+2.Optimize "Build Date" compare.
+
 v13.1/v13.2 2025-09-25
 -------------
 1.fix server build error and warning
@@ -6,9 +11,9 @@ v13 2025-09-25
 -------------
 1.Support AMD DM Y26.
 2.The BCU file support multy decode.
-3.Optimize PSP FW value check.
+3.Optimize PSP FW value compare.
 4.Optimize output result excel for pandas rules update.
-5.Optimize Microcode compare
+5.Optimize Microcode compare.
 
 v12.1 2025-06-06
 -------------
