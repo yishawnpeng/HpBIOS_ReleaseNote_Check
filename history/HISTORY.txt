@@ -1,3 +1,7 @@
+v13.3 2026-09-14
+-------------
+1.Optimize support AMD DM Y27/Y28/Y29/Z26
+
 v13.3 2026-07-07
 -------------
 1.Optimize "AMD GOP" and "AMD VBIOS" compare.

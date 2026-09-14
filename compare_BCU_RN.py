@@ -41,7 +41,7 @@ version = "13.3"
 arg=argparse_function(version)
 
 AMDPlatformDict = {"R24","R26","S25","S27","S29","T25","T26","T27"}
-AMDG12PlatformDict = {"X26","X27","Y26"}
+AMDG12PlatformDict = {"X26","X27","Y26","Y27","Y28","Y29","Z26"}
 AMDG4PlatformDict = {"Q26","Q27"}
 isAMDPlatform = None
 isAMDG4Platform = None
